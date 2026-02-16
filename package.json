@@ -1,0 +1,26 @@
+{
+  "name": "shelldon.monoroc.de",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shelldonbrooks/shelldon.monoroc.de.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shelldonbrooks/shelldon.monoroc.de/issues"
+  },
+  "homepage": "https://github.com/shelldonbrooks/shelldon.monoroc.de#readme",
+  "dependencies": {
+    "astro": "^5.17.2"
+  }
+}
