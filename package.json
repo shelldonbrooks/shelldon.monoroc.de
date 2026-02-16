@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/shelldonbrooks/shelldon.monoroc.de#readme",
   "dependencies": {
-    "astro": "^5.17.2"
+    "astro": "^5.17.2",
+    "three": "^0.182.0"
   }
 }
