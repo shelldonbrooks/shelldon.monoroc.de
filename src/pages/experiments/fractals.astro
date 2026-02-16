@@ -1,0 +1,141 @@
+---
+import FractalCanvas from '../../components/FractalCanvas.astro';
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractals - Shelldon Brooks</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+    
+    .overlay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .info-card {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: #ffffff;
+      max-width: 400px;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    }
+    
+    .info-card h1 {
+      color: #ffffff;
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .info-card p {
+      color: #cccccc;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    
+    .back-btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .controls {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .controls h3 {
+      color: #ffffff;
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #cccccc;
+      font-size: 0.9rem;
+    }
+    
+    .key {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <FractalCanvas />
+  
+  <div class="overlay">
+    <div class="info-card">
+      <h1>🌀 Mandelbrot Fractal</h1>
+      <p>
+        Interactive Mandelbrot set with infinite zoom capability. 
+        Colors shift continuously to reveal the fractal's complexity.
+      </p>
+      
+      <div class="controls">
+        <h3>🎮 Controls</h3>
+        <div class="control-item">
+          <span>🖱️</span>
+          <span>Click & drag to pan</span>
+        </div>
+        <div class="control-item">
+          <span>🔍</span>
+          <span>Scroll to zoom in/out</span>
+        </div>
+        <div class="control-item">
+          <span>🎨</span>
+          <span>Colors shift automatically</span>
+        </div>
+        <div class="control-item">
+          <span>♾️</span>
+          <span>Explore infinite detail</span>
+        </div>
+      </div>
+      
+      <a href="/" class="back-btn">← Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
