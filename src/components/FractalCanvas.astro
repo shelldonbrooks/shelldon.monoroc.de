@@ -1,17 +1,22 @@
 ---
-// Mandelbrot Fractal Component
+// Mandelbrot Fractal Component - Optimized
 ---
 
 <canvas id="fractal-canvas"></canvas>
 
 <script>
   const canvas = document.getElementById('fractal-canvas') as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+  const ctx = canvas.getContext('2d', { willReadFrequently: false })!;
   
   let width = window.innerWidth;
   let height = window.innerHeight;
-  canvas.width = width;
-  canvas.height = height;
+  
+  // Render at lower resolution for performance
+  const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+  canvas.width = width * pixelRatio;
+  canvas.height = height * pixelRatio;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
   
   // Fractal parameters
   let zoom = 1;
@@ -20,6 +25,7 @@
   let maxIterations = 100;
   let colorShift = 0;
   let colorSpeed = 0.5;
+  let needsRedraw = true;
   
   const initialZoom = zoom;
   const initialOffsetX = offsetX;
@@ -47,7 +53,7 @@
     const s = 0.8;
     const l = iteration < maxIterations ? 0.5 : 0;
     
-    // HSL to RGB
+    // HSL to RGB (optimized)
     let r, g, b;
     
     if (s === 0) {
@@ -73,30 +79,38 @@
   }
   
   function draw() {
-    const imageData = ctx.createImageData(width, height);
+    if (!needsRedraw) return;
     
-    for (let px = 0; px < width; px++) {
-      for (let py = 0; py < height; py++) {
-        const x0 = (px - width / 2) / (0.5 * zoom * width) + offsetX;
-        const y0 = (py - height / 2) / (0.5 * zoom * height) + offsetY;
+    const w = canvas.width;
+    const h = canvas.height;
+    const imageData = ctx.createImageData(w, h);
+    const data = imageData.data;
+    
+    // Render fractal
+    for (let px = 0; px < w; px++) {
+      for (let py = 0; py < h; py++) {
+        const x0 = (px - w / 2) / (0.5 * zoom * w) + offsetX;
+        const y0 = (py - h / 2) / (0.5 * zoom * h) + offsetY;
         
         const iteration = mandelbrot(x0, y0);
         const [r, g, b] = getColor(iteration);
         
-        const index = (py * width + px) * 4;
-        imageData.data[index] = r;
-        imageData.data[index + 1] = g;
-        imageData.data[index + 2] = b;
-        imageData.data[index + 3] = 255;
+        const index = (py * w + px) * 4;
+        data[index] = r;
+        data[index + 1] = g;
+        data[index + 2] = b;
+        data[index + 3] = 255;
       }
     }
     
     ctx.putImageData(imageData, 0, 0);
+    needsRedraw = false;
   }
   
   // Mouse interaction
   let isDragging = false;
   let startX = 0, startY = 0;
+  let dragTimeout: number | null = null;
   
   canvas.addEventListener('mousedown', (e) => {
     isDragging = true;
@@ -107,19 +121,25 @@
   
   canvas.addEventListener('mousemove', (e) => {
     if (isDragging) {
-      const dx = (e.clientX - startX) / (0.5 * zoom * width);
-      const dy = (e.clientY - startY) / (0.5 * zoom * height);
+      const dx = (e.clientX - startX) / (0.5 * zoom * canvas.width);
+      const dy = (e.clientY - startY) / (0.5 * zoom * canvas.height);
       offsetX -= dx;
       offsetY -= dy;
       startX = e.clientX;
       startY = e.clientY;
-      draw();
+      
+      // Debounce redraw
+      needsRedraw = true;
+      if (dragTimeout) clearTimeout(dragTimeout);
+      dragTimeout = window.setTimeout(() => draw(), 16); // ~60fps
     }
   });
   
   canvas.addEventListener('mouseup', () => {
     isDragging = false;
     canvas.style.cursor = 'grab';
+    needsRedraw = true;
+    draw();
   });
   
   canvas.addEventListener('wheel', (e) => {
@@ -129,17 +149,18 @@
     // Zoom towards mouse position
     const mouseX = e.clientX;
     const mouseY = e.clientY;
-    const beforeX = (mouseX - width / 2) / (0.5 * zoom * width) + offsetX;
-    const beforeY = (mouseY - height / 2) / (0.5 * zoom * height) + offsetY;
+    const beforeX = (mouseX * pixelRatio - canvas.width / 2) / (0.5 * zoom * canvas.width) + offsetX;
+    const beforeY = (mouseY * pixelRatio - canvas.height / 2) / (0.5 * zoom * canvas.height) + offsetY;
     
     zoom *= zoomFactor;
     
-    const afterX = (mouseX - width / 2) / (0.5 * zoom * width) + offsetX;
-    const afterY = (mouseY - height / 2) / (0.5 * zoom * height) + offsetY;
+    const afterX = (mouseX * pixelRatio - canvas.width / 2) / (0.5 * zoom * canvas.width) + offsetX;
+    const afterY = (mouseY * pixelRatio - canvas.height / 2) / (0.5 * zoom * canvas.height) + offsetY;
     
     offsetX += beforeX - afterX;
     offsetY += beforeY - afterY;
     
+    needsRedraw = true;
     draw();
   });
   
@@ -147,17 +168,16 @@
   let touchStartDistance = 0;
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchTimeout: number | null = null;
   
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     
     if (e.touches.length === 2) {
-      // Pinch zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       touchStartDistance = Math.sqrt(dx * dx + dy * dy);
     } else if (e.touches.length === 1) {
-      // Single touch pan
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     }
@@ -167,7 +187,6 @@
     e.preventDefault();
     
     if (e.touches.length === 2 && touchStartDistance > 0) {
-      // Pinch zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const currentDistance = Math.sqrt(dx * dx + dy * dy);
@@ -176,22 +195,27 @@
       zoom *= zoomFactor;
       touchStartDistance = currentDistance;
       
-      draw();
+      needsRedraw = true;
+      if (touchTimeout) clearTimeout(touchTimeout);
+      touchTimeout = window.setTimeout(() => draw(), 16);
     } else if (e.touches.length === 1) {
-      // Pan
-      const dx = (e.touches[0].clientX - touchStartX) / (0.5 * zoom * width);
-      const dy = (e.touches[0].clientY - touchStartY) / (0.5 * zoom * height);
+      const dx = (e.touches[0].clientX - touchStartX) / (0.5 * zoom * canvas.width);
+      const dy = (e.touches[0].clientY - touchStartY) / (0.5 * zoom * canvas.height);
       offsetX -= dx;
       offsetY -= dy;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       
-      draw();
+      needsRedraw = true;
+      if (touchTimeout) clearTimeout(touchTimeout);
+      touchTimeout = window.setTimeout(() => draw(), 16);
     }
   });
   
   canvas.addEventListener('touchend', () => {
     touchStartDistance = 0;
+    needsRedraw = true;
+    draw();
   });
   
   // Controls
@@ -202,6 +226,7 @@
   if (iterationsSlider) {
     iterationsSlider.addEventListener('input', (e) => {
       maxIterations = parseInt((e.target as HTMLInputElement).value);
+      needsRedraw = true;
       draw();
     });
   }
@@ -217,15 +242,23 @@
       zoom = initialZoom;
       offsetX = initialOffsetX;
       offsetY = initialOffsetY;
+      needsRedraw = true;
       draw();
     });
   }
   
-  // Color shift animation
-  function animate() {
-    colorShift += colorSpeed;
-    if (colorShift >= 360) colorShift = 0;
-    draw();
+  // Color shift animation (only update color, redraw only when needed)
+  let lastColorUpdate = 0;
+  function animate(timestamp: number) {
+    if (timestamp - lastColorUpdate > 50) { // ~20fps for color shift
+      colorShift += colorSpeed;
+      if (colorShift >= 360) colorShift = 0;
+      if (colorSpeed > 0) {
+        needsRedraw = true;
+        draw();
+      }
+      lastColorUpdate = timestamp;
+    }
     requestAnimationFrame(animate);
   }
   
@@ -233,13 +266,16 @@
   window.addEventListener('resize', () => {
     width = window.innerWidth;
     height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    needsRedraw = true;
     draw();
   });
   
   draw();
-  animate();
+  requestAnimationFrame(animate);
 </script>
 
 <style>
@@ -252,6 +288,7 @@
     cursor: grab;
     background: #000;
     touch-action: none;
+    image-rendering: auto;
   }
   
   #fractal-canvas:active {
