@@ -19,67 +19,149 @@
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   
-  // Shell-spiral parameters (golden ratio spiral)
-  const particles = new THREE.BufferGeometry();
-  const particleCount = 3000;
-  const positions = new Float32Array(particleCount * 3);
-  const colors = new Float32Array(particleCount * 3);
+  // Parameters
+  let particleCount = 3000;
+  let particleSize = 0.15;
+  let rotationSpeed = 1;
   const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
   
-  for (let i = 0; i < particleCount; i++) {
-    const t = i / particleCount;
-    const angle = t * Math.PI * 4 * phi;
-    const radius = t * 8;
+  let particleSystem: THREE.Points;
+  
+  function createParticles(count: number) {
+    // Remove old particles if they exist
+    if (particleSystem) {
+      scene.remove(particleSystem);
+      particleSystem.geometry.dispose();
+    }
     
-    // Fibonacci spiral
-    positions[i * 3] = Math.cos(angle) * radius;
-    positions[i * 3 + 1] = Math.sin(angle) * radius;
-    positions[i * 3 + 2] = (t - 0.5) * 10;
+    const particles = new THREE.BufferGeometry();
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
     
-    // Color gradient (cyan to blue)
-    const colorMix = t;
-    colors[i * 3] = 0.2 + colorMix * 0.3;     // R
-    colors[i * 3 + 1] = 0.7 + colorMix * 0.2; // G
-    colors[i * 3 + 2] = 0.9 + colorMix * 0.1; // B
+    for (let i = 0; i < count; i++) {
+      const t = i / count;
+      const angle = t * Math.PI * 4 * phi;
+      const radius = t * 8;
+      
+      // Fibonacci spiral
+      positions[i * 3] = Math.cos(angle) * radius;
+      positions[i * 3 + 1] = Math.sin(angle) * radius;
+      positions[i * 3 + 2] = (t - 0.5) * 10;
+      
+      // Color gradient (cyan to blue)
+      const colorMix = t;
+      colors[i * 3] = 0.2 + colorMix * 0.3;     // R
+      colors[i * 3 + 1] = 0.7 + colorMix * 0.2; // G
+      colors[i * 3 + 2] = 0.9 + colorMix * 0.1; // B
+    }
+    
+    particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const material = new THREE.PointsMaterial({
+      size: particleSize,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+    });
+    
+    particleSystem = new THREE.Points(particles, material);
+    scene.add(particleSystem);
   }
   
-  particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  
-  const material = new THREE.PointsMaterial({
-    size: 0.15,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.8,
-    blending: THREE.AdditiveBlending,
-  });
-  
-  const particleSystem = new THREE.Points(particles, material);
-  scene.add(particleSystem);
+  createParticles(particleCount);
   
   camera.position.z = 15;
   camera.position.y = 2;
   
-  // Mouse interaction
+  // Mouse & Touch interaction
   let mouseX = 0;
   let mouseY = 0;
+  let targetX = 0;
+  let targetY = 0;
   
+  // Mouse events
   document.addEventListener('mousemove', (event) => {
     mouseX = (event.clientX / window.innerWidth) * 2 - 1;
     mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
   });
   
+  // Touch events
+  let initialDistance = 0;
+  let currentDistance = 0;
+  
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      initialDistance = Math.sqrt(dx * dx + dy * dy);
+    } else if (e.touches.length === 1) {
+      targetX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+      targetY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
+    }
+  });
+  
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    
+    if (e.touches.length === 2) {
+      // Pinch to zoom
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      currentDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (initialDistance > 0) {
+        const scale = currentDistance / initialDistance;
+        camera.position.z = Math.max(5, Math.min(25, 15 / scale));
+      }
+    } else if (e.touches.length === 1) {
+      // Single touch to move camera
+      mouseX = targetX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+      mouseY = targetY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
+    }
+  });
+  
+  canvas.addEventListener('touchend', () => {
+    initialDistance = 0;
+  });
+  
+  // Controls
+  const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
+  const particlesSlider = document.getElementById('particles-slider') as HTMLInputElement;
+  const sizeSlider = document.getElementById('size-slider') as HTMLInputElement;
+  
+  if (speedSlider) {
+    speedSlider.addEventListener('input', (e) => {
+      rotationSpeed = parseFloat((e.target as HTMLInputElement).value);
+    });
+  }
+  
+  if (particlesSlider) {
+    particlesSlider.addEventListener('input', (e) => {
+      particleCount = parseInt((e.target as HTMLInputElement).value);
+      createParticles(particleCount);
+    });
+  }
+  
+  if (sizeSlider) {
+    sizeSlider.addEventListener('input', (e) => {
+      particleSize = parseFloat((e.target as HTMLInputElement).value);
+      (particleSystem.material as THREE.PointsMaterial).size = particleSize;
+    });
+  }
+  
   // Animation loop
   let time = 0;
   function animate() {
     requestAnimationFrame(animate);
-    time += 0.005;
+    time += 0.005 * rotationSpeed;
     
     // Rotate spiral
     particleSystem.rotation.y = time;
     particleSystem.rotation.x = Math.sin(time * 0.3) * 0.2;
     
-    // Mouse follow
+    // Smooth camera follow
     camera.position.x += (mouseX * 3 - camera.position.x) * 0.05;
     camera.position.y += (mouseY * 3 + 2 - camera.position.y) * 0.05;
     camera.lookAt(scene.position);
@@ -109,5 +191,6 @@
     height: 100%;
     z-index: -1;
     background: linear-gradient(180deg, #0a0e1a 0%, #1a1f35 100%);
+    touch-action: none;
   }
 </style>
