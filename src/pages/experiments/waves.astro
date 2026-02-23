@@ -226,15 +226,16 @@
       originalPositions[i * 3 + 2] = positionAttribute.getZ(i);
     }
 
-    // Add wireframe overlay for better visualization
-    const wireframeGeometry = new THREE.WireframeGeometry(oceanGeometry);
+    // Add wireframe overlay for better visualization (static, not updated per frame)
+    const wireframeGeo = new THREE.WireframeGeometry(new THREE.PlaneGeometry(30, 30, 32, 32));
     const wireframeMaterial = new THREE.LineBasicMaterial({ 
       color: 0x38bdf8, 
       transparent: true, 
-      opacity: 0.1 
+      opacity: 0.08
     });
-    const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-    ocean.add(wireframe);
+    const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMaterial);
+    wireframe.rotation.x = -Math.PI / 2;
+    scene.add(wireframe);
 
     // Controls
     document.getElementById('height-slider').addEventListener('input', (e) => {
@@ -283,10 +284,6 @@
       
       positionAttribute.needsUpdate = true;
       oceanGeometry.computeVertexNormals();
-      
-      // Update wireframe
-      wireframe.geometry.dispose();
-      wireframe.geometry = new THREE.WireframeGeometry(oceanGeometry);
       
       // Animate light
       pointLight.position.x = Math.sin(time * 0.5) * 5;

@@ -4,10 +4,10 @@
 
 <canvas id="shell-canvas"></canvas>
 
-<script>
-  import * as THREE from 'three';
+<script type="module">
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
   
-  const canvas = document.getElementById('shell-canvas') as HTMLCanvasElement;
+  const canvas = document.getElementById('shell-canvas');
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ 
@@ -25,9 +25,9 @@
   let rotationSpeed = 1;
   const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
   
-  let particleSystem: THREE.Points;
+  let particleSystem;
   
-  function createParticles(count: number) {
+  function createParticles(count) {
     // Remove old particles if they exist
     if (particleSystem) {
       scene.remove(particleSystem);
@@ -127,27 +127,27 @@
   });
   
   // Controls
-  const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
-  const particlesSlider = document.getElementById('particles-slider') as HTMLInputElement;
-  const sizeSlider = document.getElementById('size-slider') as HTMLInputElement;
+  const speedSlider = document.getElementById('speed-slider');
+  const particlesSlider = document.getElementById('particles-slider');
+  const sizeSlider = document.getElementById('size-slider');
   
   if (speedSlider) {
     speedSlider.addEventListener('input', (e) => {
-      rotationSpeed = parseFloat((e.target as HTMLInputElement).value);
+      rotationSpeed = parseFloat(e.target.value);
     });
   }
   
   if (particlesSlider) {
     particlesSlider.addEventListener('input', (e) => {
-      particleCount = parseInt((e.target as HTMLInputElement).value);
+      particleCount = parseInt(e.target.value);
       createParticles(particleCount);
     });
   }
   
   if (sizeSlider) {
     sizeSlider.addEventListener('input', (e) => {
-      particleSize = parseFloat((e.target as HTMLInputElement).value);
-      (particleSystem.material as THREE.PointsMaterial).size = particleSize;
+      particleSize = parseFloat(e.target.value);
+      particleSystem.material.size = particleSize;
     });
   }
   

@@ -1,0 +1,262 @@
+---
+// Animated Background - Alternates between Wave and Galaxy animations
+---
+
+<canvas id="animated-canvas"></canvas>
+
+<script type="module">
+  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+  
+  const canvas = document.getElementById('animated-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ 
+    canvas, 
+    alpha: false,
+    antialias: true 
+  });
+  
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  
+  // Animation state
+  let currentMode = 'galaxy';
+  let switchInterval = 15000; // 15 seconds between switches
+  let lastSwitch = Date.now();
+  
+  // Galaxy variables
+  let galaxyPoints = null;
+  let galaxyGeometry = null;
+  let galaxyMaterial = null;
+  
+  // Wave variables
+  let waveMesh = null;
+  let waveGeometry = null;
+  let waveMaterial = null;
+  let waveOriginalPositions = null;
+  let waveLight = null;
+  let waveAmbientLight = null;
+  let waveDirectionalLight = null;
+  
+  // Create Galaxy
+  function createGalaxy() {
+    if (galaxyPoints) {
+      scene.remove(galaxyPoints);
+      if (galaxyGeometry) galaxyGeometry.dispose();
+      if (galaxyMaterial) galaxyMaterial.dispose();
+    }
+    
+    const params = {
+      count: 20000,
+      size: 0.02,
+      radius: 5,
+      branches: 5,
+      spin: 1,
+      randomness: 0.2,
+      randomnessPower: 3,
+      insideColor: '#ff6030',
+      outsideColor: '#1b3984'
+    };
+    
+    galaxyGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(params.count * 3);
+    const colors = new Float32Array(params.count * 3);
+    
+    const colorInside = new THREE.Color(params.insideColor);
+    const colorOutside = new THREE.Color(params.outsideColor);
+    
+    for (let i = 0; i < params.count; i++) {
+      const i3 = i * 3;
+      
+      const radius = Math.random() * params.radius;
+      const spinAngle = radius * params.spin;
+      const branchAngle = (i % params.branches) / params.branches * Math.PI * 2;
+      
+      const randomX = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+      const randomY = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+      const randomZ = Math.pow(Math.random(), params.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * params.randomness * radius;
+      
+      positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+      positions[i3 + 1] = randomY;
+      positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+      
+      const mixedColor = colorInside.clone();
+      mixedColor.lerp(colorOutside, radius / params.radius);
+      
+      colors[i3] = mixedColor.r;
+      colors[i3 + 1] = mixedColor.g;
+      colors[i3 + 2] = mixedColor.b;
+    }
+    
+    galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    galaxyMaterial = new THREE.PointsMaterial({
+      size: params.size,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true
+    });
+    
+    galaxyPoints = new THREE.Points(galaxyGeometry, galaxyMaterial);
+    galaxyPoints.visible = currentMode === 'galaxy';
+    scene.add(galaxyPoints);
+  }
+  
+  // Create Waves
+  function createWaves() {
+    if (waveMesh) {
+      scene.remove(waveMesh);
+      if (waveGeometry) waveGeometry.dispose();
+      if (waveMaterial) waveMaterial.dispose();
+    }
+    
+    // Remove old lights
+    if (waveLight) scene.remove(waveLight);
+    if (waveAmbientLight) scene.remove(waveAmbientLight);
+    if (waveDirectionalLight) scene.remove(waveDirectionalLight);
+    
+    waveGeometry = new THREE.PlaneGeometry(30, 30, 128, 128);
+    waveMaterial = new THREE.MeshPhongMaterial({
+      color: 0x0ea5e9,
+      transparent: true,
+      opacity: 0.8,
+      shininess: 100,
+      specular: 0x38bdf8,
+      side: THREE.DoubleSide,
+      flatShading: false,
+    });
+    
+    waveMesh = new THREE.Mesh(waveGeometry, waveMaterial);
+    waveMesh.rotation.x = -Math.PI / 2;
+    waveMesh.visible = currentMode === 'waves';
+    scene.add(waveMesh);
+    
+    // Store original positions
+    const positionAttribute = waveGeometry.getAttribute('position');
+    waveOriginalPositions = new Float32Array(positionAttribute.count * 3);
+    for (let i = 0; i < positionAttribute.count; i++) {
+      waveOriginalPositions[i * 3] = positionAttribute.getX(i);
+      waveOriginalPositions[i * 3 + 1] = positionAttribute.getY(i);
+      waveOriginalPositions[i * 3 + 2] = positionAttribute.getZ(i);
+    }
+    
+    // Lights for waves
+    waveAmbientLight = new THREE.AmbientLight(0x38bdf8, 0.3);
+    waveAmbientLight.visible = currentMode === 'waves';
+    scene.add(waveAmbientLight);
+    
+    waveDirectionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    waveDirectionalLight.position.set(5, 10, 5);
+    waveDirectionalLight.visible = currentMode === 'waves';
+    scene.add(waveDirectionalLight);
+    
+    waveLight = new THREE.PointLight(0x38bdf8, 1, 30);
+    waveLight.position.set(0, 3, 0);
+    waveLight.visible = currentMode === 'waves';
+    scene.add(waveLight);
+  }
+  
+  // Initialize both animations
+  createGalaxy();
+  createWaves();
+  
+  // Set camera position based on mode
+  function updateCameraForMode() {
+    if (currentMode === 'galaxy') {
+      camera.position.set(4, 3, 4);
+      scene.background = new THREE.Color(0x000000);
+      scene.fog = null;
+    } else {
+      camera.position.set(0, 5, 8);
+      scene.background = new THREE.Color(0x001a33);
+      scene.fog = new THREE.Fog(0x001a33, 10, 50);
+    }
+  }
+  
+  updateCameraForMode();
+  
+  // Switch between modes
+  function switchMode() {
+    currentMode = currentMode === 'galaxy' ? 'waves' : 'galaxy';
+    
+    if (galaxyPoints) galaxyPoints.visible = currentMode === 'galaxy';
+    if (waveMesh) waveMesh.visible = currentMode === 'waves';
+    if (waveLight) waveLight.visible = currentMode === 'waves';
+    if (waveAmbientLight) waveAmbientLight.visible = currentMode === 'waves';
+    if (waveDirectionalLight) waveDirectionalLight.visible = currentMode === 'waves';
+    
+    updateCameraForMode();
+    lastSwitch = Date.now();
+  }
+  
+  // Animation loop
+  let time = 0;
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    const now = Date.now();
+    if (now - lastSwitch > switchInterval) {
+      switchMode();
+    }
+    
+    time += 0.01;
+    
+    // Animate galaxy
+    if (galaxyPoints && galaxyPoints.visible) {
+      galaxyPoints.rotation.y += 0.001;
+    }
+    
+    // Animate waves
+    if (waveMesh && waveMesh.visible && waveGeometry && waveOriginalPositions) {
+      const positionAttribute = waveGeometry.getAttribute('position');
+      
+      for (let i = 0; i < positionAttribute.count; i++) {
+        const x = waveOriginalPositions[i * 3];
+        const y = waveOriginalPositions[i * 3 + 1];
+        
+        const wave1 = Math.sin(x * 0.4 + time) * 0.5;
+        const wave2 = Math.sin(y * 0.6 + time * 1.3) * 0.25;
+        const wave3 = Math.sin((x + y) * 0.3 + time * 0.7) * 0.15;
+        
+        const z = wave1 + wave2 + wave3;
+        positionAttribute.setZ(i, z);
+      }
+      
+      positionAttribute.needsUpdate = true;
+      waveGeometry.computeVertexNormals();
+      
+      // Animate wave light
+      if (waveLight) {
+        waveLight.position.x = Math.sin(time * 0.5) * 5;
+        waveLight.position.z = Math.cos(time * 0.5) * 5;
+      }
+    }
+    
+    camera.lookAt(scene.position);
+    renderer.render(scene, camera);
+  }
+  
+  animate();
+  
+  // Handle resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  });
+</script>
+
+<style>
+  #animated-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+</style>
