@@ -4,12 +4,7 @@ import ordersData from '../../data/orders.json';
 const title = "Food Reviews | Shelldon Brooks";
 const description = "Ehrliche Reviews von Lieferanten und Restaurants in München.";
 
-// Restaurants that have order history (slug → true)
-const hasOrders: Record<string, boolean> = Object.fromEntries(
-  Object.entries(ordersData).map(([slug]) => [slug, true])
-);
-
-// Helper: restaurant name → slug (simple lowercase + replace spaces/special chars)
+// ── Slug helper ──────────────────────────────────────────────────────────────
 function toSlug(name: string): string {
   return name.toLowerCase()
     .replace(/⚠️|🚨/g, '')
@@ -18,86 +13,163 @@ function toSlug(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
-const sections = [
+// ── Parse "25.2." style date strings into a sortable ISO key ─────────────────
+function parseDateStr(date: string | undefined, year: number): string {
+  if (!date) return `${year}-01-01`;
+  const parts = date.replace(/\.$/, '').split('.');
+  if (parts.length >= 2) {
+    const day = parts[0].padStart(2, '0');
+    const month = parts[1].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  return `${year}-01-01`;
+}
+
+// ── Get most recent order date (ISO) for a slug ───────────────────────────────
+function getLastOrderDate(slug: string): string | undefined {
+  const restaurant = (ordersData as Record<string, { orders: { date: string }[] }>)[slug];
+  if (!restaurant?.orders?.length) return undefined;
+  return restaurant.orders.reduce(
+    (latest, order) => (order.date > latest ? order.date : latest),
+    restaurant.orders[0].date
+  );
+}
+
+// ── Format ISO date for display ───────────────────────────────────────────────
+function fmtDate(iso: string): string {
+  const [year, month, day] = iso.split('-');
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return `${parseInt(day)}. ${months[parseInt(month)-1]} ${year}`;
+}
+
+// ── Rating helper ─────────────────────────────────────────────────────────────
+function getRatingInfo(rating: number) {
+  if (rating === 4)  return { color: "#22c55e", bg: "rgba(34,197,94,0.15)",    dots: 4, negative: false };
+  if (rating === 3)  return { color: "#4ade80", bg: "rgba(74,222,128,0.12)",   dots: 3, negative: false };
+  if (rating === 2)  return { color: "#86efac", bg: "rgba(134,239,172,0.10)",  dots: 2, negative: false };
+  if (rating === 1)  return { color: "#bbf7d0", bg: "rgba(187,247,208,0.08)",  dots: 1, negative: false };
+  if (rating === 0)  return { color: "#94a3b8", bg: "rgba(148,163,184,0.08)",  dots: 0, negative: false };
+  if (rating === -1) return { color: "#fca5a5", bg: "rgba(252,165,165,0.10)",  dots: 1, negative: true  };
+  if (rating === -2) return { color: "#f87171", bg: "rgba(248,113,113,0.12)",  dots: 2, negative: true  };
+  return                    { color: "#ef4444", bg: "rgba(239,68,68,0.15)",    dots: 4, negative: true  };
+}
+
+// ── Raw review data ───────────────────────────────────────────────────────────
+const rawSections = [
   {
-    label: "2024",
+    year: 2024,
     reviews: [
       { name: "Saimen Falafel & Vegan", cuisine: "🥙", rating: 3, notes: "Shawarma +++, Falafel ++++" },
-      { name: "Bellavaria", cuisine: "🍕", rating: 2, notes: "" },
-      { name: "Papaya", cuisine: "🥗", rating: 3, notes: "Vorspeisen, Suppen, Rollen – alles gut" },
-      { name: "Santa Maria", cuisine: "🍕", rating: 2, notes: "Pizzen, Salat" },
-      { name: "Al Tabie", cuisine: "🥙", rating: 2, notes: "Pizzen, Salat – bisschen viel Käse, dauert lang" },
-      { name: "Shagun", cuisine: "🍛", rating: 2, notes: "Dal Shorba recht flüssig, Reis gut, Vindalu etwas ölig aber gut, Nan voll ok" },
-      { name: "Solo Italia", cuisine: "🍕", rating: 4, notes: "Pizza top – normale Gr. sehr groß, tolle Tomatensosse, Salat sehr gut" },
-      { name: "Indian Bites", cuisine: "🍛", rating: 1, notes: "Zu sahnig, Madras nicht scharf genug, kaum Säure, Punjabi Salat nur rote Zwiebeln + Zitrone, dafür inkl. ganzer grüner Chilis" },
-      { name: "Chandani Chowk", cuisine: "🍛", rating: -2, notes: "Zu viel Zucker" },
-      { name: "Chili Asia", cuisine: "🍜", rating: -2, notes: "Zu viel Zucker" },
-      { name: "Il Ritrovo", cuisine: "🍕", rating: 3, notes: "Sehr gute Pizza, guter Salat" },
-      { name: "Palast der Winde", cuisine: "🔥", rating: 3, notes: "Grillplatte traumhaft – mit Reis, Sosse & Salat" },
-      { name: "Hewad", cuisine: "🥙", rating: 3, notes: "Gute Grillgerichte, fein gewürzt, guter Salat" },
-      { name: "Kaen", cuisine: "🍜", rating: 4, notes: "Sehr gute Ente, tolles Grilled Chicken" },
-      { name: "Anti", cuisine: "🫒", rating: 2, notes: "Gutes Gyros, manchmal eher weich (Mikrowellen-Verdacht), echte Kritharaki, Salat ok" },
-      { name: "Apostels", cuisine: "🫒", rating: 2, notes: "Gutes Gyros, knusprig, Tomatenreis, Salat ok – teilw. wenig Tomaten/Gurken, teilw. Mikrowellen-Verdacht" },
-      { name: "Eclipse", cuisine: "🔥", rating: 4, notes: "Lecker Grillstuff + Sossen, toller Salat – bester Salat!" },
-      { name: "Kinky Slice", cuisine: "🍕", rating: -1, notes: "Detroit Deep Dish – sehr fettig, viel Käse, sehr fett" },
-      { name: "Ayurveda", cuisine: "🍛", rating: 1, notes: "Vindaloo gut, eher cremig, Schärfe ok aber ausbaufähig. Garnelensuppe +++. Lamm Jalfrezi ok, nicht PDW-Quali" },
-      { name: "Samrat", cuisine: "🍛", rating: 1, date: "16.12.", notes: "Jalfrezi gute Schärfe, Chicken ok aber unter PDW-Quali, Portion groß, Reis ok, Salat groß aber zu viel Joghurt" },
-      { name: "Sendlinger Augustiner", cuisine: "🥨", rating: 2, notes: "Stabiler Schweinsbraten, 2erlei Knödel, Sosse extra, Krautsalat sehr klein" },
-      { name: "Leo's Lounge", cuisine: "🥩", rating: 2, date: "26.12.", notes: "Sehr gutes Kalbsschnitzel, günstig, Kartoffelsalat Durchschnitt" },
-      { name: "Sitar", cuisine: "🍛", rating: 2, date: "27.12.", notes: "Bestes Jalfrezi, gute Schärfe (besser als PDW). Vindaloo könnte schärfer, Chicken besser sein. Reis gut, Papadam gut" },
-    ]
+      { name: "Bellavaria",             cuisine: "🍕", rating: 2, notes: "" },
+      { name: "Papaya",                 cuisine: "🥗", rating: 3, notes: "Vorspeisen, Suppen, Rollen – alles gut" },
+      { name: "Santa Maria",            cuisine: "🍕", rating: 2, notes: "Pizzen, Salat" },
+      { name: "Al Tabie",               cuisine: "🥙", rating: 2, notes: "Pizzen, Salat – bisschen viel Käse, dauert lang" },
+      { name: "Shagun",                 cuisine: "🍛", rating: 2, notes: "Dal Shorba recht flüssig, Reis gut, Vindalu etwas ölig aber gut, Nan voll ok" },
+      { name: "Solo Italia",            cuisine: "🍕", rating: 4, notes: "Pizza top – normale Gr. sehr groß, tolle Tomatensosse, Salat sehr gut" },
+      { name: "Indian Bites",           cuisine: "🍛", rating: 1, notes: "Zu sahnig, Madras nicht scharf genug, kaum Säure, Punjabi Salat nur rote Zwiebeln + Zitrone, dafür inkl. ganzer grüner Chilis" },
+      { name: "Chandani Chowk",         cuisine: "🍛", rating: -2, notes: "Zu viel Zucker" },
+      { name: "Chili Asia",             cuisine: "🍜", rating: -2, notes: "Zu viel Zucker" },
+      { name: "Il Ritrovo",             cuisine: "🍕", rating: 3, notes: "Sehr gute Pizza, guter Salat" },
+      { name: "Palast der Winde",       cuisine: "🔥", rating: 3, notes: "Grillplatte traumhaft – mit Reis, Sosse & Salat" },
+      { name: "Hewad",                  cuisine: "🥙", rating: 3, notes: "Gute Grillgerichte, fein gewürzt, guter Salat" },
+      { name: "Kaen",                   cuisine: "🍜", rating: 4, notes: "Sehr gute Ente, tolles Grilled Chicken" },
+      { name: "Anti",                   cuisine: "🫒", rating: 2, notes: "Gutes Gyros, manchmal eher weich (Mikrowellen-Verdacht), echte Kritharaki, Salat ok" },
+      { name: "Apostels",               cuisine: "🫒", rating: 2, notes: "Gutes Gyros, knusprig, Tomatenreis, Salat ok – teilw. wenig Tomaten/Gurken, teilw. Mikrowellen-Verdacht" },
+      { name: "Eclipse",                cuisine: "🔥", rating: 4, notes: "Lecker Grillstuff + Sossen, toller Salat – bester Salat!" },
+      { name: "Kinky Slice",            cuisine: "🍕", rating: -1, notes: "Detroit Deep Dish – sehr fettig, viel Käse, sehr fett" },
+      { name: "Ayurveda",               cuisine: "🍛", rating: 1, notes: "Vindaloo gut, eher cremig, Schärfe ok aber ausbaufähig. Garnelensuppe +++. Lamm Jalfrezi ok, nicht PDW-Quali" },
+      { name: "Samrat",                 cuisine: "🍛", rating: 1, date: "16.12.", notes: "Jalfrezi gute Schärfe, Chicken ok aber unter PDW-Quali, Portion groß, Reis ok, Salat groß aber zu viel Joghurt" },
+      { name: "Sendlinger Augustiner",  cuisine: "🥨", rating: 2, notes: "Stabiler Schweinsbraten, 2erlei Knödel, Sosse extra, Krautsalat sehr klein" },
+      { name: "Leo's Lounge",           cuisine: "🥩", rating: 2, date: "26.12.", notes: "Sehr gutes Kalbsschnitzel, günstig, Kartoffelsalat Durchschnitt" },
+      { name: "Sitar",                  cuisine: "🍛", rating: 2, date: "27.12.", notes: "Bestes Jalfrezi, gute Schärfe (besser als PDW). Vindaloo könnte schärfer, Chicken besser sein. Reis gut, Papadam gut" },
+    ],
   },
   {
-    label: "2025",
+    year: 2025,
     reviews: [
-      { name: "Sara-H Grillhouse", cuisine: "🔥", rating: 1, notes: "Grillspieße ok, kein Lamm geliefert – dafür Mengen an Brot. Reis gut, bisschen Gemüse, keine Sosse" },
-      { name: "Malatang", cuisine: "🍜", rating: 4, date: "2.1.", notes: "Authentisch chinesisch – Rindfleisch schön scharf, guter Sichuan Pfeffer, super Ente, schönes Gemüse, viel Reis" },
-      { name: "Bombay", cuisine: "🍛", rating: 2, date: "3.1.", notes: "Vindaloo sehr scharf, optimale Schärfe, fast drüber – aber bisschen ölig. Punjabi Salat toll" },
-      { name: "Beef Crew", cuisine: "🍔", rating: 2, date: "5.1.", notes: "Burger sehr gut, günstig, Paprika-Relish gut, Salat ok" },
-      { name: "Ala Kefak", cuisine: "🥙", rating: 1, date: "19.1.", notes: "Shawarma gut, aber fettig. Pommes sehr gut. Arabi Teller bisschen teuer" },
-      { name: "Taj Mahal", cuisine: "🍛", rating: 2, date: "26.1.", notes: "Vindaloo gut scharf, aber da geht mehr. Fleisch nicht so gut wie PDW. Lassan Naan sehr gut. Reis mittel, ganz ok" },
-      { name: "Taverna Melina", cuisine: "🫒", rating: 1, date: "17.2.", notes: "Grillteller, Gyros ok, viel Tzatziki einzeln verpackt, Salat nur Eisberg, Souvlaki nicht so gut" },
-      { name: "Mimi Grill", cuisine: "🔥", rating: 1, date: "22.2.", notes: "Cevapcici gut, Paprikafleisch sehr lecker, Würstl sehr fettig, Ajvar etwas käsig, wenig Zwiebeln, gutes Brot" },
-      { name: "Curry Brothers", cuisine: "🍔", rating: 1, date: "2.3.", notes: "Currywurst gut, Cheeseburger nichts Besonderes" },
-      { name: "Khana Kazana", cuisine: "🍛", rating: 2, date: "3.3.", notes: "Dal Shorba leicht cremig, frischer Garlic, ziemlich gut. Nan ok. Chicken Vindaloo etwas flüssig, Schärfe gut, leicht unter PDW-Quali" },
-      { name: "Heimwerk", cuisine: "🥩", rating: 0, date: "4.3.", notes: "Chili-Schnitzel gut, Hähnchen-Knusper-Schnitzel gut, exzellenter Kartoffelsalat mit Radieschen – insgesamt aber teuer" },
-      { name: "Cafe Hüller", cuisine: "🥨", rating: 1, date: "23.3.", notes: "Münchner Bio-Schnitzel mit Bratkartoffeln und Salat, gut – bisschen teuer" },
-      { name: "Bahalo", cuisine: "🫒", rating: 2, notes: "Santorini Teller – Salat sehr gut, Gurken/Tomaten/Peperoni/Oliven, Tagesgemüse, Kartoffeln, Zucchini" },
-      { name: "Taverna Paros", cuisine: "🫒", rating: 4, date: "6.7.", notes: "Paros Teller – alles top. Gutes Fleisch, schönes Lammkotelett, super Salat Dressing, gratis Brot und kleinen Kuchen" },
-      { name: "Holz zu Asche BBQ", cuisine: "🔥", rating: 3, date: "25.9.", notes: "Tolle Lemon Pepper Wings (7 Stück). Jamaican Drum Sticks – 3 sehr große Stück mit Wedges, beides sehr gut" },
-      { name: "Esar", cuisine: "🍕", rating: 1, date: "1.11.", notes: "Pizza nicht mehr so salzig wie gewohnt, Pastasauce recht flüssig, insgesamt zu teuer" },
-      { name: "Lithos", cuisine: "🫒", rating: 2, notes: "Grillteller ok – aber keine Paros-Quali" },
-      { name: "Hans im Glück", cuisine: "🍔", rating: -4, notes: "" },
-      { name: "Isartor ⚠️", cuisine: "🚨", rating: -4, notes: "VORSICHT SCAM – Lieferung nach 90 Minuten (recht spät bestellt 21:45h)!" },
-      { name: "Afro Bites", cuisine: "🌍", rating: 2, notes: "Rindfleisch gut, lecker, scharf – aber bisschen wenig Fleisch, Fleisch recht fettig" },
-      { name: "Indian Love Story", cuisine: "🍛", rating: 2, notes: "Jalfrezi gut scharf, bisschen wenig, aber sehr lecker. Plus: Papadams mit extra Zwiebeln" },
-      { name: "Thali", cuisine: "🍛", rating: -2, notes: "Tamatar Shorba zu cremig, zu wenig Kräuter. Vindaloo nicht scharf" },
+      { name: "Sara-H Grillhouse",  cuisine: "🔥", rating: 1, notes: "Grillspieße ok, kein Lamm geliefert – dafür Mengen an Brot. Reis gut, bisschen Gemüse, keine Sosse" },
+      { name: "Malatang",           cuisine: "🍜", rating: 4, date: "2.1.",   notes: "Authentisch chinesisch – Rindfleisch schön scharf, guter Sichuan Pfeffer, super Ente, schönes Gemüse, viel Reis" },
+      { name: "Bombay",             cuisine: "🍛", rating: 2, date: "3.1.",   notes: "Vindaloo sehr scharf, optimale Schärfe, fast drüber – aber bisschen ölig. Punjabi Salat toll" },
+      { name: "Beef Crew",          cuisine: "🍔", rating: 2, date: "5.1.",   notes: "Burger sehr gut, günstig, Paprika-Relish gut, Salat ok" },
+      { name: "Ala Kefak",          cuisine: "🥙", rating: 1, date: "19.1.",  notes: "Shawarma gut, aber fettig. Pommes sehr gut. Arabi Teller bisschen teuer" },
+      { name: "Taj Mahal",          cuisine: "🍛", rating: 2, date: "26.1.",  notes: "Vindaloo gut scharf, aber da geht mehr. Fleisch nicht so gut wie PDW. Lassan Naan sehr gut. Reis mittel, ganz ok" },
+      { name: "Taverna Melina",     cuisine: "🫒", rating: 1, date: "17.2.",  notes: "Grillteller, Gyros ok, viel Tzatziki einzeln verpackt, Salat nur Eisberg, Souvlaki nicht so gut" },
+      { name: "Mimi Grill",         cuisine: "🔥", rating: 1, date: "22.2.",  notes: "Cevapcici gut, Paprikafleisch sehr lecker, Würstl sehr fettig, Ajvar etwas käsig, wenig Zwiebeln, gutes Brot" },
+      { name: "Curry Brothers",     cuisine: "🍔", rating: 1, date: "2.3.",   notes: "Currywurst gut, Cheeseburger nichts Besonderes" },
+      { name: "Khana Kazana",       cuisine: "🍛", rating: 2, date: "3.3.",   notes: "Dal Shorba leicht cremig, frischer Garlic, ziemlich gut. Nan ok. Chicken Vindaloo etwas flüssig, Schärfe gut, leicht unter PDW-Quali" },
+      { name: "Heimwerk",           cuisine: "🥩", rating: 0, date: "4.3.",   notes: "Chili-Schnitzel gut, Hähnchen-Knusper-Schnitzel gut, exzellenter Kartoffelsalat mit Radieschen – insgesamt aber teuer" },
+      { name: "Cafe Hüller",        cuisine: "🥨", rating: 1, date: "23.3.",  notes: "Münchner Bio-Schnitzel mit Bratkartoffeln und Salat, gut – bisschen teuer" },
+      { name: "Bahalo",             cuisine: "🫒", rating: 2, notes: "Santorini Teller – Salat sehr gut, Gurken/Tomaten/Peperoni/Oliven, Tagesgemüse, Kartoffeln, Zucchini" },
+      { name: "Taverna Paros",      cuisine: "🫒", rating: 4, date: "6.7.",   notes: "Paros Teller – alles top. Gutes Fleisch, schönes Lammkotelett, super Salat Dressing, gratis Brot und kleinen Kuchen" },
+      { name: "Holz zu Asche BBQ",  cuisine: "🔥", rating: 3, date: "25.9.",  notes: "Tolle Lemon Pepper Wings (7 Stück). Jamaican Drum Sticks – 3 sehr große Stück mit Wedges, beides sehr gut" },
+      { name: "Esar",               cuisine: "🍕", rating: 1, date: "1.11.",  notes: "Pizza nicht mehr so salzig wie gewohnt, Pastasauce recht flüssig, insgesamt zu teuer" },
+      { name: "Lithos",             cuisine: "🫒", rating: 2, notes: "Grillteller ok – aber keine Paros-Quali" },
+      { name: "Hans im Glück",      cuisine: "🍔", rating: -4, notes: "" },
+      { name: "Isartor ⚠️",         cuisine: "🚨", rating: -4, notes: "VORSICHT SCAM – Lieferung nach 90 Minuten (recht spät bestellt 21:45h)!" },
+      { name: "Afro Bites",         cuisine: "🌍", rating: 2, notes: "Rindfleisch gut, lecker, scharf – aber bisschen wenig Fleisch, Fleisch recht fettig" },
+      { name: "Indian Love Story",  cuisine: "🍛", rating: 2, notes: "Jalfrezi gut scharf, bisschen wenig, aber sehr lecker. Plus: Papadams mit extra Zwiebeln" },
+      { name: "Thali",              cuisine: "🍛", rating: -2, notes: "Tamatar Shorba zu cremig, zu wenig Kräuter. Vindaloo nicht scharf" },
       { name: "Käppchen Burgergrill", cuisine: "🍔", rating: -1, notes: "Burger Standard, Salat nur Eisberg, hausgemachtes Dressing ok, Pommes stabil" },
-      { name: "Chiang Shing", cuisine: "🍜", rating: 2, date: "20.12.", notes: "Suppe, Sichuan Rind – gute Zutaten, frisches Gemüse, Suppe groß. Könnte schärfer sein. Reis klebt etwas" },
-      { name: "Anjappar", cuisine: "🍛", rating: 2, notes: "Mutton Varutha Curry mit ganzen Gewürzen (Sternanis etc.). Suppe gut aber sehr salzig. Lammcurry gut, nach Suppe etwas lasch" },
-    ]
+      { name: "Chiang Shing",       cuisine: "🍜", rating: 2, date: "20.12.", notes: "Suppe, Sichuan Rind – gute Zutaten, frisches Gemüse, Suppe groß. Könnte schärfer sein. Reis klebt etwas" },
+      { name: "Anjappar",           cuisine: "🍛", rating: 2, notes: "Mutton Varutha Curry mit ganzen Gewürzen (Sternanis etc.). Suppe gut aber sehr salzig. Lammcurry gut, nach Suppe etwas lasch" },
+    ],
   },
   {
-    label: "2026",
+    year: 2026,
     reviews: [
-      { name: "Das Neuhausen", cuisine: "🥩", rating: 1, notes: "Gute Schnitzel, Pommes bisschen lasch, kleiner Salat ok" },
-      { name: "Watan Kabab", cuisine: "🥙", rating: 3, notes: "Leckere Spieße, toller Salat und Chutney!" },
-      { name: "Tannengarten", cuisine: "🥨", rating: 2, date: "17.2.", notes: "Guter Schweinsbraten, gute Käsespätzle, große Portionen, guter Salat" },
-      { name: "Gasthaus FUX", cuisine: "🥩", rating: 3, date: "25.2.", notes: "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" },
-    ]
-  }
+      { name: "Das Neuhausen",  cuisine: "🥩", rating: 1, notes: "Gute Schnitzel, Pommes bisschen lasch, kleiner Salat ok" },
+      { name: "Watan Kabab",    cuisine: "🥙", rating: 3, notes: "Leckere Spieße, toller Salat und Chutney!" },
+      { name: "Tannengarten",   cuisine: "🥨", rating: 2, date: "17.2.", notes: "Guter Schweinsbraten, gute Käsespätzle, große Portionen, guter Salat" },
+      { name: "Gasthaus FUX",   cuisine: "🥩", rating: 3, date: "25.2.", notes: "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" },
+    ],
+  },
 ];
 
-function getRatingInfo(rating: number) {
-  if (rating === 4) return { label: "++++", color: "#22c55e", bg: "rgba(34,197,94,0.15)", dots: 4, negative: false };
-  if (rating === 3) return { label: "+++",  color: "#4ade80", bg: "rgba(74,222,128,0.12)", dots: 3, negative: false };
-  if (rating === 2) return { label: "++",   color: "#86efac", bg: "rgba(134,239,172,0.10)", dots: 2, negative: false };
-  if (rating === 1) return { label: "+",    color: "#bbf7d0", bg: "rgba(187,247,208,0.08)", dots: 1, negative: false };
-  if (rating === 0) return { label: "–",    color: "#94a3b8", bg: "rgba(148,163,184,0.08)", dots: 0, negative: false };
-  if (rating === -1) return { label: "−",   color: "#fca5a5", bg: "rgba(252,165,165,0.10)", dots: 1, negative: true };
-  if (rating === -2) return { label: "−−",  color: "#f87171", bg: "rgba(248,113,113,0.12)", dots: 2, negative: true };
-  return { label: "−−−−", color: "#ef4444", bg: "rgba(239,68,68,0.15)", dots: 4, negative: true };
+// ── Build enriched flat list ──────────────────────────────────────────────────
+type EnrichedReview = {
+  name: string;
+  cuisine: string;
+  rating: number;
+  notes?: string;
+  date?: string;
+  year: number;
+  slug: string;
+  lastOrderDate?: string;      // ISO date of most recent Wolt order
+  sortKey: string;             // for sorting (most recent first)
+  displayYear: number;         // year to group under in the UI
+};
+
+const allReviews: EnrichedReview[] = rawSections.flatMap(section =>
+  section.reviews.map(review => {
+    const slug = toSlug(review.name);
+    const lastOrderDate = getLastOrderDate(slug);
+    const reviewDateISO = parseDateStr(review.date, section.year);
+    const sortKey = lastOrderDate && lastOrderDate > reviewDateISO
+      ? lastOrderDate
+      : reviewDateISO;
+    const displayYear = parseInt(sortKey.split('-')[0]);
+    return { ...review, year: section.year, slug, lastOrderDate, sortKey, displayYear };
+  })
+);
+
+// Sort newest first
+allReviews.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+
+// Group by displayYear for section headers
+const yearGroups: { year: number; reviews: EnrichedReview[] }[] = [];
+for (const review of allReviews) {
+  const last = yearGroups[yearGroups.length - 1];
+  if (last && last.year === review.displayYear) {
+    last.reviews.push(review);
+  } else {
+    yearGroups.push({ year: review.displayYear, reviews: [review] });
+  }
 }
+
+const totalReviews = allReviews.length;
+const topCount    = allReviews.filter(r => r.rating >= 3).length;
+const avoidCount  = allReviews.filter(r => r.rating < 0).length;
+const orderCount  = Object.keys(ordersData).length;
 ---
 
 <!DOCTYPE html>
@@ -136,58 +208,32 @@ function getRatingInfo(rating: number) {
       gap: 1.5rem;
       max-width: 780px;
       margin: 0 auto;
-      width: 100%;
     }
 
-    .back {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color .2s;
-      white-space: nowrap;
-    }
+    .back { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color .2s; white-space: nowrap; }
     .back:hover { color: var(--accent); }
 
-    .header-text h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.02em;
-    }
-    .header-text p {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 0.2rem;
-    }
+    .header-text h1 { font-size: 1.6rem; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+    .header-text p  { color: var(--muted); font-size: 0.9rem; margin-top: 0.2rem; }
 
-    main {
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem 5rem;
-    }
+    main { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
 
+    /* Stats */
+    .stats {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+      padding: 1rem 1.25rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    .stat { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+    .stat strong { color: var(--text); }
+
+    /* Year sections */
     .year-section { margin-bottom: 3rem; }
+    .year-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+    .year-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); opacity: 0.7; }
+    .year-line { flex: 1; height: 1px; background: var(--border); }
 
-    .year-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-    }
-    .year-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--accent);
-      opacity: 0.7;
-    }
-    .year-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
+    /* Review rows */
     .review {
       display: grid;
       grid-template-columns: 2rem 1fr auto;
@@ -195,120 +241,46 @@ function getRatingInfo(rating: number) {
       padding: 0.85rem 0;
       border-bottom: 1px solid rgba(255,255,255,0.04);
       align-items: start;
-      transition: background .15s;
       border-radius: 4px;
       text-decoration: none;
       color: inherit;
+      transition: background .15s;
     }
     .review:last-child { border-bottom: none; }
     .review:hover { background: rgba(255,255,255,0.02); }
     a.review:hover .review-name { color: var(--accent); }
 
-    .review-emoji {
-      font-size: 1.2rem;
-      line-height: 1.4;
-      text-align: center;
-    }
-
-    .review-body { min-width: 0; }
+    .review-emoji { font-size: 1.2rem; line-height: 1.4; text-align: center; }
+    .review-body  { min-width: 0; }
 
     .review-name {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #fff;
-      line-height: 1.3;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
+      font-size: 1rem; font-weight: 600; color: #fff; line-height: 1.3;
+      display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
       transition: color .15s;
     }
 
     .order-chip {
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 0.1rem 0.4rem;
-      border-radius: 999px;
-      background: rgba(56,189,248,0.12);
-      color: var(--accent);
-      border: 1px solid rgba(56,189,248,0.25);
-      letter-spacing: 0.03em;
-      white-space: nowrap;
+      font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.4rem;
+      border-radius: 999px; background: rgba(56,189,248,0.12); color: var(--accent);
+      border: 1px solid rgba(56,189,248,0.25); letter-spacing: 0.03em; white-space: nowrap;
     }
 
-    .review-notes {
-      color: var(--muted);
-      font-size: 0.82rem;
-      margin-top: 0.3rem;
-      line-height: 1.5;
-    }
+    .review-notes { color: var(--muted); font-size: 0.82rem; margin-top: 0.3rem; line-height: 1.5; }
 
-    .review-meta {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.3rem;
-      padding-top: 0.1rem;
-    }
+    /* Right column */
+    .review-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; padding-top: 0.1rem; }
 
     .rating-badge {
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      padding: 0.2rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-      border: 1px solid currentColor;
+      display: flex; align-items: center; gap: 3px; padding: 0.2rem 0.55rem;
+      border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.04em; white-space: nowrap; border: 1px solid currentColor;
     }
+    .rating-dots { display: flex; gap: 3px; align-items: center; }
+    .dot       { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .dot-empty { width: 7px; height: 7px; border-radius: 50%; border: 1px solid; display: inline-block; opacity: 0.25; }
 
-    .rating-dots {
-      display: flex;
-      gap: 3px;
-      align-items: center;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .dot-empty {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      border: 1px solid;
-      display: inline-block;
-      opacity: 0.25;
-    }
-
-    .review-date {
-      font-size: 0.72rem;
-      color: var(--muted);
-      opacity: 0.6;
-    }
-
-    .stats {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-bottom: 2.5rem;
-      padding: 1rem 1.25rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-    }
-    .stat {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-    .stat strong { color: var(--text); }
+    .review-date    { font-size: 0.72rem; color: var(--muted); opacity: 0.6; }
+    .last-order-tag { font-size: 0.68rem; color: var(--accent); opacity: 0.75; white-space: nowrap; }
 
     @media (max-width: 520px) {
       .review { grid-template-columns: 1.6rem 1fr; }
@@ -328,35 +300,25 @@ function getRatingInfo(rating: number) {
 
 <main>
 
-  {(() => {
-    const allReviews = sections.flatMap(s => s.reviews);
-    const total = allReviews.length;
-    const top = allReviews.filter(r => r.rating >= 3).length;
-    const avoid = allReviews.filter(r => r.rating < 0).length;
-    const withOrders = Object.keys(ordersData).length;
-    return (
-      <div class="stats">
-        <div class="stat"><strong>{total}</strong> Reviews</div>
-        <div class="stat">✅ <strong>{top}</strong> empfehlenswert</div>
-        <div class="stat">❌ <strong>{avoid}</strong> eher nein</div>
-        <div class="stat">📦 <strong>{withOrders}</strong> mit Bestellhistorie</div>
-      </div>
-    );
-  })()}
+  <div class="stats">
+    <div class="stat"><strong>{totalReviews}</strong> Reviews</div>
+    <div class="stat">✅ <strong>{topCount}</strong> empfehlenswert</div>
+    <div class="stat">❌ <strong>{avoidCount}</strong> eher nein</div>
+    <div class="stat">📦 <strong>{orderCount}</strong> mit Bestellhistorie</div>
+  </div>
 
-  {sections.map(section => (
+  {yearGroups.map(group => (
     <div class="year-section">
       <div class="year-header">
-        <span class="year-label">{section.label}</span>
+        <span class="year-label">{group.year}</span>
         <span class="year-line" />
       </div>
 
-      {section.reviews.map(review => {
+      {group.reviews.map(review => {
         const ri = getRatingInfo(review.rating);
-        const slug = toSlug(review.name);
-        const hasOrderHistory = hasOrders[slug];
+        const hasOrderHistory = !!review.lastOrderDate;
         const Tag = hasOrderHistory ? 'a' : 'div';
-        const linkProps = hasOrderHistory ? { href: `/food/${slug}/` } : {};
+        const linkProps = hasOrderHistory ? { href: `/food/${review.slug}/` } : {};
 
         return (
           <Tag class="review" {...linkProps}>
@@ -390,9 +352,12 @@ function getRatingInfo(rating: number) {
               ) : (
                 <span style="color: #94a3b8; font-size: 0.75rem;">–</span>
               )}
-              {review.date && (
-                <span class="review-date">{review.date}</span>
-              )}
+              {review.lastOrderDate
+                ? <span class="last-order-tag">🛵 {fmtDate(review.lastOrderDate)}</span>
+                : review.date
+                  ? <span class="review-date">{review.date}</span>
+                  : null
+              }
             </div>
           </Tag>
         );
