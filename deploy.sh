@@ -33,6 +33,9 @@ rm -rf "$TARGET/experiments" && cp -r dist/experiments "$TARGET/"
 echo "  → Copying /assets/..."
 rm -rf "$TARGET/assets" && cp -r dist/assets "$TARGET/"
 
+echo "  → Copying /food/..."
+rm -rf "$TARGET/food" && cp -r dist/food "$TARGET/"
+
 echo ""
 echo "✅ Deployment complete!"
 echo "📍 Site: https://shelldon.monoroc.de"
