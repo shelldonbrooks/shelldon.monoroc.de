@@ -19,5 +19,24 @@
         "notes": "Shug war richtig frisch diesmal! Salat Israeli bester Salat den man irgendwo bestellen kann. Spieße auch top."
       }
     ]
+  },
+  "gasthaus-fux": {
+    "name": "Gasthaus FUX",
+    "slug": "gasthaus-fux",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-02-25",
+        "time": "19:47",
+        "source": "Wolt",
+        "orderNumber": "699f3a12ca743ae24b0cba51",
+        "items": [
+          { "name": "Wiener Schnitzel vom Kalb", "qty": 1, "unitPrice": 28.50 },
+          { "name": "Pommes frites (Beilage)", "qty": 1, "unitPrice": 0.00 }
+        ],
+        "rating": 3,
+        "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße. Alles sehr gut!"
+      }
+    ]
   }
 }
