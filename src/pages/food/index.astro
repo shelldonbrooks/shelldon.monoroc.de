@@ -1,9 +1,22 @@
 ---
+import ordersData from '../../data/orders.json';
+
 const title = "Food Reviews | Shelldon Brooks";
 const description = "Ehrliche Reviews von Lieferanten und Restaurants in München.";
 
-// Rating helper: converts +++ notation to numeric score
-// ++++ = 4, +++ = 3, ++ = 2, + = 1, 0 = neutral, - = -1, -- = -2, ---- = -4
+// Restaurants that have order history (slug → true)
+const hasOrders: Record<string, boolean> = Object.fromEntries(
+  Object.entries(ordersData).map(([slug]) => [slug, true])
+);
+
+// Helper: restaurant name → slug (simple lowercase + replace spaces/special chars)
+function toSlug(name: string): string {
+  return name.toLowerCase()
+    .replace(/⚠️|🚨/g, '')
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 const sections = [
   {
@@ -114,7 +127,6 @@ function getRatingInfo(rating: number) {
       line-height: 1.5;
     }
 
-    /* ── Header ── */
     header {
       padding: 2rem 1.5rem 1.5rem;
       border-bottom: 1px solid var(--border);
@@ -147,14 +159,12 @@ function getRatingInfo(rating: number) {
       margin-top: 0.2rem;
     }
 
-    /* ── Layout ── */
     main {
       max-width: 780px;
       margin: 0 auto;
       padding: 2.5rem 1.5rem 5rem;
     }
 
-    /* ── Year section ── */
     .year-section { margin-bottom: 3rem; }
 
     .year-header {
@@ -177,7 +187,6 @@ function getRatingInfo(rating: number) {
       background: var(--border);
     }
 
-    /* ── Review row ── */
     .review {
       display: grid;
       grid-template-columns: 2rem 1fr auto;
@@ -187,9 +196,12 @@ function getRatingInfo(rating: number) {
       align-items: start;
       transition: background .15s;
       border-radius: 4px;
+      text-decoration: none;
+      color: inherit;
     }
     .review:last-child { border-bottom: none; }
     .review:hover { background: rgba(255,255,255,0.02); }
+    a.review:hover .review-name { color: var(--accent); }
 
     .review-emoji {
       font-size: 1.2rem;
@@ -204,6 +216,22 @@ function getRatingInfo(rating: number) {
       font-weight: 600;
       color: #fff;
       line-height: 1.3;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color .15s;
+    }
+
+    .order-chip {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56,189,248,0.25);
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
 
     .review-notes {
@@ -213,7 +241,6 @@ function getRatingInfo(rating: number) {
       line-height: 1.5;
     }
 
-    /* ── Right column: rating + date ── */
     .review-meta {
       display: flex;
       flex-direction: column;
@@ -263,7 +290,6 @@ function getRatingInfo(rating: number) {
       opacity: 0.6;
     }
 
-    /* ── Stats bar ── */
     .stats {
       display: flex;
       gap: 1rem;
@@ -283,27 +309,9 @@ function getRatingInfo(rating: number) {
     }
     .stat strong { color: var(--text); }
 
-    /* ── Scam alert ── */
-    .scam-badge {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: #f87171;
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
-    }
-
     @media (max-width: 520px) {
       .review { grid-template-columns: 1.6rem 1fr; }
       .review-meta { display: none; }
-      .review-name::after {
-        content: attr(data-rating);
-        margin-left: 0.5rem;
-        font-size: 0.75rem;
-        opacity: 0.6;
-        font-weight: 400;
-      }
     }
   </style>
 </head>
@@ -319,17 +327,18 @@ function getRatingInfo(rating: number) {
 
 <main>
 
-  {/* Stats */}
   {(() => {
     const allReviews = sections.flatMap(s => s.reviews);
     const total = allReviews.length;
     const top = allReviews.filter(r => r.rating >= 3).length;
     const avoid = allReviews.filter(r => r.rating < 0).length;
+    const withOrders = Object.keys(ordersData).length;
     return (
       <div class="stats">
         <div class="stat"><strong>{total}</strong> Reviews</div>
         <div class="stat">✅ <strong>{top}</strong> empfehlenswert</div>
         <div class="stat">❌ <strong>{avoid}</strong> eher nein</div>
+        <div class="stat">📦 <strong>{withOrders}</strong> mit Bestellhistorie</div>
       </div>
     );
   })()}
@@ -343,13 +352,19 @@ function getRatingInfo(rating: number) {
 
       {section.reviews.map(review => {
         const ri = getRatingInfo(review.rating);
+        const slug = toSlug(review.name);
+        const hasOrderHistory = hasOrders[slug];
+        const Tag = hasOrderHistory ? 'a' : 'div';
+        const linkProps = hasOrderHistory ? { href: `/food/${slug}/` } : {};
+
         return (
-          <div class="review">
+          <Tag class="review" {...linkProps}>
             <span class="review-emoji">{review.cuisine}</span>
 
             <div class="review-body">
-              <div class="review-name" data-rating={ri.label}>
+              <div class="review-name">
                 {review.name}
+                {hasOrderHistory && <span class="order-chip">📦 Orders</span>}
               </div>
               {review.notes && (
                 <div class="review-notes">{review.notes}</div>
@@ -378,7 +393,7 @@ function getRatingInfo(rating: number) {
                 <span class="review-date">{review.date}</span>
               )}
             </div>
-          </div>
+          </Tag>
         );
       })}
     </div>

@@ -1,0 +1,370 @@
+---
+import ordersData from '../../data/orders.json';
+
+export function getStaticPaths() {
+  return Object.entries(ordersData).map(([slug, restaurant]) => ({
+    params: { slug },
+    props: { restaurant },
+  }));
+}
+
+const { restaurant } = Astro.props;
+
+type OrderItem = { name: string; qty: number; unitPrice: number };
+type Order = {
+  date: string;
+  time: string;
+  source: string;
+  orderNumber?: string;
+  items: OrderItem[];
+  discount?: number;
+  rating: number;
+  notes: string;
+};
+
+function getRatingInfo(rating: number) {
+  if (rating === 4) return { label: "++++", color: "#22c55e", bg: "rgba(34,197,94,0.15)", dots: 4, negative: false };
+  if (rating === 3) return { label: "+++",  color: "#4ade80", bg: "rgba(74,222,128,0.12)", dots: 3, negative: false };
+  if (rating === 2) return { label: "++",   color: "#86efac", bg: "rgba(134,239,172,0.10)", dots: 2, negative: false };
+  if (rating === 1) return { label: "+",    color: "#bbf7d0", bg: "rgba(187,247,208,0.08)", dots: 1, negative: false };
+  if (rating === 0) return { label: "–",    color: "#94a3b8", bg: "rgba(148,163,184,0.08)", dots: 0, negative: false };
+  if (rating === -1) return { label: "−",   color: "#fca5a5", bg: "rgba(252,165,165,0.10)", dots: 1, negative: true };
+  if (rating === -2) return { label: "−−",  color: "#f87171", bg: "rgba(248,113,113,0.12)", dots: 2, negative: true };
+  return { label: "−−−−", color: "#ef4444", bg: "rgba(239,68,68,0.15)", dots: 4, negative: true };
+}
+
+function formatDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-');
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return `${parseInt(day)}. ${months[parseInt(month)-1]} ${year}`;
+}
+
+function itemTotal(item: OrderItem): number {
+  return item.qty * item.unitPrice;
+}
+
+function orderTotal(order: Order): number {
+  const sum = order.items.reduce((acc, i) => acc + itemTotal(i), 0);
+  return sum + (order.discount || 0);
+}
+
+const orders: Order[] = (restaurant.orders as Order[]).slice().reverse(); // newest first
+const totalSpent = orders.reduce((acc, o) => acc + orderTotal(o), 0);
+const orderCount = orders.length;
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{restaurant.name} – Bestellhistorie</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0b0f1a;
+      --surface: #121828;
+      --surface2: #1a2236;
+      --border: rgba(56, 189, 248, 0.12);
+      --border2: rgba(255,255,255,0.06);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #38bdf8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 2rem 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .breadcrumb a:hover { color: var(--accent); }
+    .breadcrumb span { margin: 0 0.4rem; opacity: 0.4; }
+
+    .restaurant-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .address {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .stat {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .stat strong { color: var(--text); }
+
+    /* Order cards */
+    .order-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+
+    .order-header {
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border2);
+      flex-wrap: wrap;
+    }
+
+    .order-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .order-date {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .order-time {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .source-chip {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.08);
+      color: var(--accent);
+      border: 1px solid rgba(56,189,248,0.2);
+    }
+
+    .order-rating-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid currentColor;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-empty {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1px solid;
+      display: inline-block;
+      opacity: 0.25;
+    }
+
+    /* Items table */
+    .items {
+      padding: 0.75rem 1.25rem;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.9rem;
+    }
+    .item-row:last-child { border-bottom: none; }
+
+    .item-name { color: var(--text); }
+    .item-qty {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-left: 0.4rem;
+    }
+    .item-price {
+      color: var(--muted);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .discount-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      font-size: 0.82rem;
+      color: #4ade80;
+      border-top: 1px dashed rgba(255,255,255,0.06);
+      margin-top: 0.25rem;
+    }
+
+    .order-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 1.25rem;
+      border-top: 1px solid var(--border2);
+      background: var(--surface2);
+      font-size: 0.85rem;
+    }
+    .total-label { color: var(--muted); }
+    .total-value { font-weight: 700; color: #fff; }
+
+    /* Notes */
+    .order-notes {
+      padding: 0.75rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border2);
+      background: rgba(255,255,255,0.01);
+      font-style: italic;
+    }
+    .order-notes::before {
+      content: "💬 ";
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <a href="/food/">Food</a>
+    <span>/</span>
+    {restaurant.name}
+  </div>
+  <div class="restaurant-header">
+    <div>
+      <h1>{restaurant.name}</h1>
+      {restaurant.address && <div class="address">📍 {restaurant.address}</div>}
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="stats-row">
+    <div class="stat">📦 <strong>{orderCount}</strong> {orderCount === 1 ? 'Bestellung' : 'Bestellungen'}</div>
+    <div class="stat">💶 <strong>{totalSpent.toFixed(2)} €</strong> gesamt</div>
+  </div>
+
+  {orders.map((order: Order) => {
+    const ri = getRatingInfo(order.rating);
+    const total = orderTotal(order);
+    return (
+      <div class="order-card">
+        <div class="order-header">
+          <div class="order-meta">
+            <span class="order-date">{formatDate(order.date)}</span>
+            <span class="order-time">{order.time} Uhr</span>
+            <span class="source-chip">{order.source}</span>
+          </div>
+          {order.rating !== 0 && (
+            <div
+              class="order-rating-badge"
+              style={`color:${ri.color}; background:${ri.bg}; border-color:${ri.color}40;`}
+            >
+              {Array.from({ length: ri.dots }, (_: unknown, i: number) => (
+                <span class="dot" style={`background:${ri.color}`} />
+              ))}
+              {!ri.negative && Array.from({ length: 4 - ri.dots }, (_: unknown, i: number) => (
+                <span class="dot-empty" style={`border-color:${ri.color}`} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div class="items">
+          {order.items.map((item: OrderItem) => (
+            <div class="item-row">
+              <span class="item-name">
+                {item.name}
+                {item.qty > 1 && <span class="item-qty">× {item.qty}</span>}
+              </span>
+              <span class="item-price">{itemTotal(item).toFixed(2)} €</span>
+            </div>
+          ))}
+          {order.discount && order.discount !== 0 && (
+            <div class="discount-row">
+              <span>Rabatt</span>
+              <span>{order.discount.toFixed(2)} €</span>
+            </div>
+          )}
+        </div>
+
+        <div class="order-total-row">
+          <span class="total-label">Gesamt (Speisen)</span>
+          <span class="total-value">{total.toFixed(2)} €</span>
+        </div>
+
+        {order.notes && (
+          <div class="order-notes">{order.notes}</div>
+        )}
+      </div>
+    );
+  })}
+
+</main>
+
+</body>
+</html>

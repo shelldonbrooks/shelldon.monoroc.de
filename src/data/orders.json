@@ -1,0 +1,23 @@
+{
+  "eclipse": {
+    "name": "Eclipse",
+    "slug": "eclipse",
+    "address": "Heßstr. 51, 80798 München",
+    "orders": [
+      {
+        "date": "2026-02-24",
+        "time": "20:34",
+        "source": "Wolt",
+        "orderNumber": "699df4a56936e39f537d7097",
+        "items": [
+          { "name": "Shipud Pargijot", "qty": 2, "unitPrice": 14.90 },
+          { "name": "Salat Israeli", "qty": 1, "unitPrice": 6.00 },
+          { "name": "Shug", "qty": 1, "unitPrice": 4.60 }
+        ],
+        "discount": -5.96,
+        "rating": 4,
+        "notes": "Shug war richtig frisch diesmal! Salat Israeli bester Salat den man irgendwo bestellen kann. Spieße auch top."
+      }
+    ]
+  }
+}
