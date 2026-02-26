@@ -20,6 +20,27 @@
       }
     ]
   },
+  "palast-der-winde": {
+    "name": "Palast der Winde",
+    "slug": "palast-der-winde",
+    "address": "Hans-Sachs-Straße 8, 80469 München",
+    "orders": [
+      {
+        "date": "2026-02-26",
+        "time": "20:34",
+        "source": "Wolt",
+        "orderNumber": "69a0991dbed5e4ed27b9a2ed",
+        "items": [
+          { "name": "82. Gemischte Grillplatte", "qty": 1, "unitPrice": 16.90 }
+        ],
+        "tip": 1.00,
+        "serviceFee": 0.83,
+        "total": 18.73,
+        "rating": 4,
+        "notes": "Grillplatte wieder top – lecker Fleisch, lecker Soße, Salat und Reis. Wie immer großartig."
+      }
+    ]
+  },
   "gasthaus-fux": {
     "name": "Gasthaus FUX",
     "slug": "gasthaus-fux",
