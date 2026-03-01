@@ -59,5 +59,28 @@
         "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße. Alles sehr gut!"
       }
     ]
+  },
+  "malatang": {
+    "name": "Malatang 麻辣煮義",
+    "slug": "malatang",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-02-28",
+        "time": "20:15",
+        "source": "Wolt",
+        "orderNumber": "69a338f30a0ed12d04f6aa34",
+        "items": [
+          { "name": "烤鸭盖饭 (Crispy Roasted Duck Rice)", "qty": 1, "unitPrice": 16.90 },
+          { "name": "Thai Curry (scharf)", "qty": 1, "unitPrice": 0.00 }
+        ],
+        "discount": -4.23,
+        "tip": 1.00,
+        "serviceFee": 0.62,
+        "total": 14.29,
+        "rating": 4,
+        "notes": "Crispy Roasted Duck Rice mit Thai Curry (scharf) – gut!"
+      }
+    ]
   }
 }

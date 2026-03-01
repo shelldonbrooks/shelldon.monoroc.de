@@ -1,5 +1,6 @@
 ---
 import ordersData from '../../data/orders.json';
+import reviewsData from '../../data/reviews.json';
 
 const title = "Food Reviews | Shelldon Brooks";
 const description = "Ehrliche Reviews von Lieferanten und Restaurants in München.";
@@ -54,77 +55,6 @@ function getRatingInfo(rating: number) {
   return                    { color: "#ef4444", bg: "rgba(239,68,68,0.15)",    dots: 4, negative: true  };
 }
 
-// ── Raw review data ───────────────────────────────────────────────────────────
-const rawSections = [
-  {
-    year: 2024,
-    reviews: [
-      { name: "Saimen Falafel & Vegan", cuisine: "🥙", rating: 3, notes: "Shawarma +++, Falafel ++++" },
-      { name: "Bellavaria",             cuisine: "🍕", rating: 2, notes: "" },
-      { name: "Papaya",                 cuisine: "🥗", rating: 3, notes: "Vorspeisen, Suppen, Rollen – alles gut" },
-      { name: "Santa Maria",            cuisine: "🍕", rating: 2, notes: "Pizzen, Salat" },
-      { name: "Al Tabie",               cuisine: "🥙", rating: 2, notes: "Pizzen, Salat – bisschen viel Käse, dauert lang" },
-      { name: "Shagun",                 cuisine: "🍛", rating: 2, notes: "Dal Shorba recht flüssig, Reis gut, Vindalu etwas ölig aber gut, Nan voll ok" },
-      { name: "Solo Italia",            cuisine: "🍕", rating: 4, notes: "Pizza top – normale Gr. sehr groß, tolle Tomatensosse, Salat sehr gut" },
-      { name: "Indian Bites",           cuisine: "🍛", rating: 1, notes: "Zu sahnig, Madras nicht scharf genug, kaum Säure, Punjabi Salat nur rote Zwiebeln + Zitrone, dafür inkl. ganzer grüner Chilis" },
-      { name: "Chandani Chowk",         cuisine: "🍛", rating: -2, notes: "Zu viel Zucker" },
-      { name: "Chili Asia",             cuisine: "🍜", rating: -2, notes: "Zu viel Zucker" },
-      { name: "Il Ritrovo",             cuisine: "🍕", rating: 3, notes: "Sehr gute Pizza, guter Salat" },
-      { name: "Palast der Winde",       cuisine: "🔥", rating: 4, notes: "Grillplatte top – lecker Fleisch, Sosse, Salat & Reis. Zuverlässig großartig." },
-      { name: "Hewad",                  cuisine: "🥙", rating: 3, notes: "Gute Grillgerichte, fein gewürzt, guter Salat" },
-      { name: "Kaen",                   cuisine: "🍜", rating: 4, notes: "Sehr gute Ente, tolles Grilled Chicken" },
-      { name: "Anti",                   cuisine: "🫒", rating: 2, notes: "Gutes Gyros, manchmal eher weich (Mikrowellen-Verdacht), echte Kritharaki, Salat ok" },
-      { name: "Apostels",               cuisine: "🫒", rating: 2, notes: "Gutes Gyros, knusprig, Tomatenreis, Salat ok – teilw. wenig Tomaten/Gurken, teilw. Mikrowellen-Verdacht" },
-      { name: "Eclipse",                cuisine: "🔥", rating: 4, notes: "Lecker Grillstuff + Sossen, toller Salat – bester Salat!" },
-      { name: "Kinky Slice",            cuisine: "🍕", rating: -1, notes: "Detroit Deep Dish – sehr fettig, viel Käse, sehr fett" },
-      { name: "Ayurveda",               cuisine: "🍛", rating: 1, notes: "Vindaloo gut, eher cremig, Schärfe ok aber ausbaufähig. Garnelensuppe +++. Lamm Jalfrezi ok, nicht PDW-Quali" },
-      { name: "Samrat",                 cuisine: "🍛", rating: 1, date: "16.12.", notes: "Jalfrezi gute Schärfe, Chicken ok aber unter PDW-Quali, Portion groß, Reis ok, Salat groß aber zu viel Joghurt" },
-      { name: "Sendlinger Augustiner",  cuisine: "🥨", rating: 2, notes: "Stabiler Schweinsbraten, 2erlei Knödel, Sosse extra, Krautsalat sehr klein" },
-      { name: "Leo's Lounge",           cuisine: "🥩", rating: 2, date: "26.12.", notes: "Sehr gutes Kalbsschnitzel, günstig, Kartoffelsalat Durchschnitt" },
-      { name: "Sitar",                  cuisine: "🍛", rating: 2, date: "27.12.", notes: "Bestes Jalfrezi, gute Schärfe (besser als PDW). Vindaloo könnte schärfer, Chicken besser sein. Reis gut, Papadam gut" },
-    ],
-  },
-  {
-    year: 2025,
-    reviews: [
-      { name: "Sara-H Grillhouse",  cuisine: "🔥", rating: 1, notes: "Grillspieße ok, kein Lamm geliefert – dafür Mengen an Brot. Reis gut, bisschen Gemüse, keine Sosse" },
-      { name: "Malatang",           cuisine: "🍜", rating: 4, date: "2.1.",   notes: "Authentisch chinesisch – Rindfleisch schön scharf, guter Sichuan Pfeffer, super Ente, schönes Gemüse, viel Reis" },
-      { name: "Bombay",             cuisine: "🍛", rating: 2, date: "3.1.",   notes: "Vindaloo sehr scharf, optimale Schärfe, fast drüber – aber bisschen ölig. Punjabi Salat toll" },
-      { name: "Beef Crew",          cuisine: "🍔", rating: 2, date: "5.1.",   notes: "Burger sehr gut, günstig, Paprika-Relish gut, Salat ok" },
-      { name: "Ala Kefak",          cuisine: "🥙", rating: 1, date: "19.1.",  notes: "Shawarma gut, aber fettig. Pommes sehr gut. Arabi Teller bisschen teuer" },
-      { name: "Taj Mahal",          cuisine: "🍛", rating: 2, date: "26.1.",  notes: "Vindaloo gut scharf, aber da geht mehr. Fleisch nicht so gut wie PDW. Lassan Naan sehr gut. Reis mittel, ganz ok" },
-      { name: "Taverna Melina",     cuisine: "🫒", rating: 1, date: "17.2.",  notes: "Grillteller, Gyros ok, viel Tzatziki einzeln verpackt, Salat nur Eisberg, Souvlaki nicht so gut" },
-      { name: "Mimi Grill",         cuisine: "🔥", rating: 1, date: "22.2.",  notes: "Cevapcici gut, Paprikafleisch sehr lecker, Würstl sehr fettig, Ajvar etwas käsig, wenig Zwiebeln, gutes Brot" },
-      { name: "Curry Brothers",     cuisine: "🍔", rating: 1, date: "2.3.",   notes: "Currywurst gut, Cheeseburger nichts Besonderes" },
-      { name: "Khana Kazana",       cuisine: "🍛", rating: 2, date: "3.3.",   notes: "Dal Shorba leicht cremig, frischer Garlic, ziemlich gut. Nan ok. Chicken Vindaloo etwas flüssig, Schärfe gut, leicht unter PDW-Quali" },
-      { name: "Heimwerk",           cuisine: "🥩", rating: 0, date: "4.3.",   notes: "Chili-Schnitzel gut, Hähnchen-Knusper-Schnitzel gut, exzellenter Kartoffelsalat mit Radieschen – insgesamt aber teuer" },
-      { name: "Cafe Hüller",        cuisine: "🥨", rating: 1, date: "23.3.",  notes: "Münchner Bio-Schnitzel mit Bratkartoffeln und Salat, gut – bisschen teuer" },
-      { name: "Bahalo",             cuisine: "🫒", rating: 2, notes: "Santorini Teller – Salat sehr gut, Gurken/Tomaten/Peperoni/Oliven, Tagesgemüse, Kartoffeln, Zucchini" },
-      { name: "Taverna Paros",      cuisine: "🫒", rating: 4, date: "6.7.",   notes: "Paros Teller – alles top. Gutes Fleisch, schönes Lammkotelett, super Salat Dressing, gratis Brot und kleinen Kuchen" },
-      { name: "Holz zu Asche BBQ",  cuisine: "🔥", rating: 3, date: "25.9.",  notes: "Tolle Lemon Pepper Wings (7 Stück). Jamaican Drum Sticks – 3 sehr große Stück mit Wedges, beides sehr gut" },
-      { name: "Esar",               cuisine: "🍕", rating: 1, date: "1.11.",  notes: "Pizza nicht mehr so salzig wie gewohnt, Pastasauce recht flüssig, insgesamt zu teuer" },
-      { name: "Lithos",             cuisine: "🫒", rating: 2, notes: "Grillteller ok – aber keine Paros-Quali" },
-      { name: "Hans im Glück",      cuisine: "🍔", rating: -4, notes: "" },
-      { name: "Isartor ⚠️",         cuisine: "🚨", rating: -4, notes: "VORSICHT SCAM – Lieferung nach 90 Minuten (recht spät bestellt 21:45h)!" },
-      { name: "Afro Bites",         cuisine: "🌍", rating: 2, notes: "Rindfleisch gut, lecker, scharf – aber bisschen wenig Fleisch, Fleisch recht fettig" },
-      { name: "Indian Love Story",  cuisine: "🍛", rating: 2, notes: "Jalfrezi gut scharf, bisschen wenig, aber sehr lecker. Plus: Papadams mit extra Zwiebeln" },
-      { name: "Thali",              cuisine: "🍛", rating: -2, notes: "Tamatar Shorba zu cremig, zu wenig Kräuter. Vindaloo nicht scharf" },
-      { name: "Käppchen Burgergrill", cuisine: "🍔", rating: -1, notes: "Burger Standard, Salat nur Eisberg, hausgemachtes Dressing ok, Pommes stabil" },
-      { name: "Chiang Shing",       cuisine: "🍜", rating: 2, date: "20.12.", notes: "Suppe, Sichuan Rind – gute Zutaten, frisches Gemüse, Suppe groß. Könnte schärfer sein. Reis klebt etwas" },
-      { name: "Anjappar",           cuisine: "🍛", rating: 2, notes: "Mutton Varutha Curry mit ganzen Gewürzen (Sternanis etc.). Suppe gut aber sehr salzig. Lammcurry gut, nach Suppe etwas lasch" },
-    ],
-  },
-  {
-    year: 2026,
-    reviews: [
-      { name: "Das Neuhausen",  cuisine: "🥩", rating: 1, notes: "Gute Schnitzel, Pommes bisschen lasch, kleiner Salat ok" },
-      { name: "Watan Kabab",    cuisine: "🥙", rating: 3, notes: "Leckere Spieße, toller Salat und Chutney!" },
-      { name: "Tannengarten",   cuisine: "🥨", rating: 2, date: "17.2.", notes: "Guter Schweinsbraten, gute Käsespätzle, große Portionen, guter Salat" },
-      { name: "Gasthaus FUX",   cuisine: "🥩", rating: 3, date: "25.2.", notes: "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" },
-    ],
-  },
-];
-
 // ── Build enriched flat list ──────────────────────────────────────────────────
 type EnrichedReview = {
   name: string;
@@ -139,18 +69,16 @@ type EnrichedReview = {
   displayYear: number;         // year to group under in the UI
 };
 
-const allReviews: EnrichedReview[] = rawSections.flatMap(section =>
-  section.reviews.map(review => {
+const allReviews: EnrichedReview[] = (reviewsData as { year: number; name: string; cuisine: string; rating: number; notes?: string; date?: string }[]).map(review => {
     const slug = toSlug(review.name);
     const lastOrderDate = getLastOrderDate(slug);
-    const reviewDateISO = parseDateStr(review.date, section.year);
+    const reviewDateISO = parseDateStr(review.date, review.year);
     const sortKey = lastOrderDate && lastOrderDate > reviewDateISO
       ? lastOrderDate
       : reviewDateISO;
     const displayYear = parseInt(sortKey.split('-')[0]);
-    return { ...review, year: section.year, slug, lastOrderDate, sortKey, displayYear };
-  })
-);
+    return { ...review, slug, lastOrderDate, sortKey, displayYear };
+  });
 
 // Sort newest first
 allReviews.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
