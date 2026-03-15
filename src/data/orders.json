@@ -82,5 +82,98 @@
         "notes": "Crispy Roasted Duck Rice mit Thai Curry (scharf) – gut!"
       }
     ]
+  },
+  "trattoria-marano": {
+    "name": "Trattoria Marano",
+    "slug": "trattoria-marano",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-03-01",
+        "time": "17:25",
+        "source": "Wolt",
+        "orderNumber": "69a4712fd6d0a0e57e67993e",
+        "items": [
+          { "name": "Pizza Margherita", "qty": 1, "unitPrice": 10.90 },
+          { "name": "Insalata Mista", "qty": 1, "unitPrice": 6.50 },
+          { "name": "Penne all'Arrabbiata", "qty": 1, "unitPrice": 10.90 }
+        ],
+        "delivery": 0.00,
+        "tip": 1.41,
+        "serviceFee": 1.98,
+        "discount": -0.59,
+        "total": 31.10,
+        "rating": 3,
+        "notes": "Gute, stabile Pizza. Salat in großer Schüssel, auch lecker. Sehr große Portion. Alles sehr stabil."
+      }
+    ]
+  },
+  "indian-accent": {
+    "name": "Indian Accent",
+    "slug": "indian-accent",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-03-03",
+        "time": "18:50",
+        "source": "Wolt",
+        "orderNumber": "69a727f90a30528ffb601a5d",
+        "items": [
+          { "name": "Dal Shorba", "qty": 1, "unitPrice": 5.90 },
+          { "name": "Chicken Vindaloo", "qty": 1, "unitPrice": 16.90 }
+        ],
+        "delivery": 0.00,
+        "tip": 1.14,
+        "serviceFee": 1.60,
+        "discount": -0.48,
+        "total": 25.06
+      }
+    ]
+  },
+  "taverna-paros": {
+    "name": "Taverna Paros",
+    "slug": "taverna-paros",
+    "address": "Kirchenstraße 27, 81675 München",
+    "orders": [
+      {
+        "date": "2026-03-08",
+        "time": "19:22",
+        "source": "Wolt",
+        "orderNumber": "69adb37b6af1fd6f5603f956",
+        "items": [
+          { "name": "Paros Teller", "qty": 1, "unitPrice": 22.80 },
+          { "name": "Deine Beilage: Salat", "qty": 1, "unitPrice": 0.00 }
+        ],
+        "delivery": 0.00,
+        "tip": 1.14,
+        "serviceFee": 1.82,
+        "discount": -0.73,
+        "total": 25.03
+      }
+    ]
+  },
+  "solo-italia": {
+    "name": "Solo Italia",
+    "slug": "solo-italia",
+    "address": "Bergstr. 5, 81539 München",
+    "orders": [
+      {
+        "date": "2026-03-13",
+        "time": "20:28",
+        "source": "Wolt",
+        "orderNumber": "69b46b5e5786791b682d1990",
+        "items": [
+          { "name": "Insalata Mista", "qty": 1, "unitPrice": 7.90 },
+          { "name": "Pizza Margherita", "qty": 1, "unitPrice": 11.90 },
+          { "name": "Pizza Prosciutto", "qty": 1, "unitPrice": 14.50 }
+        ],
+        "delivery": 2.99,
+        "tip": 1.71,
+        "serviceFee": 2.74,
+        "total": 41.74,
+        "rating": 4,
+        "notes": "Pizzen waren super. Schön groß, wirklich gut. Diesmal auch mehr Käse als früher drauf – richtig nice."
+      }
+    ]
   }
 }

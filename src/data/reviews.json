@@ -5,7 +5,7 @@
   { "year": 2024, "name": "Santa Maria",            "cuisine": "🍕", "rating": 2, "notes": "Pizzen, Salat" },
   { "year": 2024, "name": "Al Tabie",               "cuisine": "🥙", "rating": 2, "notes": "Pizzen, Salat – bisschen viel Käse, dauert lang" },
   { "year": 2024, "name": "Shagun",                 "cuisine": "🍛", "rating": 2, "notes": "Dal Shorba recht flüssig, Reis gut, Vindalu etwas ölig aber gut, Nan voll ok" },
-  { "year": 2024, "name": "Solo Italia",            "cuisine": "🍕", "rating": 4, "notes": "Pizza top – normale Gr. sehr groß, tolle Tomatensosse, Salat sehr gut" },
+  { "year": 2024, "name": "Solo Italia",            "cuisine": "🍕", "rating": 4, "notes": "Pizza top – normale Gr. sehr groß, tolle Tomatensosse, Salat sehr gut. 03/2026: Pizzen super, schön groß, mehr Käse als früher – richtig nice." },
   { "year": 2024, "name": "Indian Bites",           "cuisine": "🍛", "rating": 1, "notes": "Zu sahnig, Madras nicht scharf genug, kaum Säure, Punjabi Salat nur rote Zwiebeln + Zitrone, dafür inkl. ganzer grüner Chilis" },
   { "year": 2024, "name": "Chandani Chowk",         "cuisine": "🍛", "rating": -2, "notes": "Zu viel Zucker" },
   { "year": 2024, "name": "Chili Asia",             "cuisine": "🍜", "rating": -2, "notes": "Zu viel Zucker" },
@@ -35,7 +35,7 @@
   { "year": 2025, "name": "Heimwerk",               "cuisine": "🥩", "rating": 0, "date": "4.3.",   "notes": "Chili-Schnitzel gut, Hähnchen-Knusper-Schnitzel gut, exzellenter Kartoffelsalat mit Radieschen – insgesamt aber teuer" },
   { "year": 2025, "name": "Cafe Hüller",            "cuisine": "🥨", "rating": 1, "date": "23.3.",  "notes": "Münchner Bio-Schnitzel mit Bratkartoffeln und Salat, gut – bisschen teuer" },
   { "year": 2025, "name": "Bahalo",                 "cuisine": "🫒", "rating": 2, "notes": "Santorini Teller – Salat sehr gut, Gurken/Tomaten/Peperoni/Oliven, Tagesgemüse, Kartoffeln, Zucchini" },
-  { "year": 2025, "name": "Taverna Paros",          "cuisine": "🫒", "rating": 4, "date": "6.7.",   "notes": "Paros Teller – alles top. Gutes Fleisch, schönes Lammkotelett, super Salat Dressing, gratis Brot und kleinen Kuchen" },
+  { "year": 2025, "name": "Taverna Paros",          "cuisine": "🫒", "rating": 4, "date": "6.7.",   "notes": "Paros Teller – alles top. Gutes Fleisch, schönes Lammkotelett, super Salat Dressing, gratis Brot und kleinen Kuchen. 03/2026: erneut bestellt." },
   { "year": 2025, "name": "Holz zu Asche BBQ",      "cuisine": "🔥", "rating": 3, "date": "25.9.",  "notes": "Tolle Lemon Pepper Wings (7 Stück). Jamaican Drum Sticks – 3 sehr große Stück mit Wedges, beides sehr gut" },
   { "year": 2025, "name": "Esar",                   "cuisine": "🍕", "rating": 1, "date": "1.11.",  "notes": "Pizza nicht mehr so salzig wie gewohnt, Pastasauce recht flüssig, insgesamt zu teuer" },
   { "year": 2025, "name": "Lithos",                 "cuisine": "🫒", "rating": 2, "notes": "Grillteller ok – aber keine Paros-Quali" },
@@ -50,5 +50,7 @@
   { "year": 2026, "name": "Das Neuhausen",          "cuisine": "🥩", "rating": 1, "notes": "Gute Schnitzel, Pommes bisschen lasch, kleiner Salat ok" },
   { "year": 2026, "name": "Watan Kabab",            "cuisine": "🥙", "rating": 3, "notes": "Leckere Spieße, toller Salat und Chutney!" },
   { "year": 2026, "name": "Tannengarten",           "cuisine": "🥨", "rating": 2, "date": "17.2.", "notes": "Guter Schweinsbraten, gute Käsespätzle, große Portionen, guter Salat" },
-  { "year": 2026, "name": "Gasthaus FUX",           "cuisine": "🥩", "rating": 3, "date": "25.2.", "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" }
+  { "year": 2026, "name": "Gasthaus FUX",           "cuisine": "🥩", "rating": 3, "date": "25.2.", "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" },
+  { "year": 2026, "name": "Trattoria Marano",      "cuisine": "🍝", "rating": 3, "date": "1.3.",   "notes": "Gute, stabile Pizza. Salat in großer Schüssel, auch lecker. Sehr große Portion." },
+  { "year": 2026, "name": "Indian Accent",         "cuisine": "🍛", "rating": 0, "date": "3.3.",   "notes": "" }
 ]

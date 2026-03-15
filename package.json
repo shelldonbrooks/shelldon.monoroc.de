@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/shelldonbrooks/shelldon.monoroc.de#readme",
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.1",
     "astro": "^5.17.2",
+    "tailwindcss": "^4.2.1",
     "three": "^0.182.0"
   }
 }
