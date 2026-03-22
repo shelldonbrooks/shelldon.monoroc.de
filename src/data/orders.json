@@ -203,7 +203,9 @@
         "orderNumber": "69beed05103f216d796edb4e",
         "tip": 1.0,
         "serviceFee": 1.08,
-        "discount": -3.38
+        "discount": -3.38,
+        "rating": 3,
+        "notes": "Alles wie immer top – aber die Ente diesmal matschig statt knusprig."
       }
     ]
   },
