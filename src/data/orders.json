@@ -1,4 +1,44 @@
 {
+  "chiang-shing": {
+    "name": "Chiang Shing",
+    "slug": "chiang-shing",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-03-20",
+        "time": "20:58",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "Gebratene Reis",
+            "qty": 1,
+            "unitPrice": 13.8
+          },
+          {
+            "name": "Szechuan Rind (四川牛)",
+            "qty": 1,
+            "unitPrice": 18.8
+          },
+          {
+            "name": "Mini-Frühlingsrollen",
+            "qty": 1,
+            "unitPrice": 5.6
+          },
+          {
+            "name": "Deine Zutat: Tofu",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
+        ],
+        "orderNumber": "69bd98b2e9b824fc465f462f",
+        "tip": 1.91,
+        "serviceFee": 3.06,
+        "discount": -1.22,
+        "rating": 3,
+        "notes": "Wieder lecker! Rind schön scharf, Reis + Tofu gut. Frühlingsrollen sind Convenience-Standard, aber das ist überall so."
+      }
+    ]
+  },
   "eclipse": {
     "name": "Eclipse",
     "slug": "eclipse",
@@ -8,36 +48,27 @@
         "date": "2026-02-24",
         "time": "20:34",
         "source": "Wolt",
-        "orderNumber": "699df4a56936e39f537d7097",
         "items": [
-          { "name": "Shipud Pargijot", "qty": 2, "unitPrice": 14.90 },
-          { "name": "Salat Israeli", "qty": 1, "unitPrice": 6.00 },
-          { "name": "Shug", "qty": 1, "unitPrice": 4.60 }
+          {
+            "name": "Shipud Pargijot",
+            "qty": 2,
+            "unitPrice": 14.9
+          },
+          {
+            "name": "Salat Israeli",
+            "qty": 1,
+            "unitPrice": 6.0
+          },
+          {
+            "name": "Shug",
+            "qty": 1,
+            "unitPrice": 4.6
+          }
         ],
+        "orderNumber": "699df4a56936e39f537d7097",
         "discount": -5.96,
         "rating": 4,
         "notes": "Shug war richtig frisch diesmal! Salat Israeli bester Salat den man irgendwo bestellen kann. Spieße auch top."
-      }
-    ]
-  },
-  "palast-der-winde": {
-    "name": "Palast der Winde",
-    "slug": "palast-der-winde",
-    "address": "Hans-Sachs-Straße 8, 80469 München",
-    "orders": [
-      {
-        "date": "2026-02-26",
-        "time": "20:34",
-        "source": "Wolt",
-        "orderNumber": "69a0991dbed5e4ed27b9a2ed",
-        "items": [
-          { "name": "82. Gemischte Grillplatte", "qty": 1, "unitPrice": 16.90 }
-        ],
-        "tip": 1.00,
-        "serviceFee": 0.83,
-        "total": 18.73,
-        "rating": 4,
-        "notes": "Grillplatte wieder top – lecker Fleisch, lecker Soße, Salat und Reis. Wie immer großartig."
       }
     ]
   },
@@ -50,61 +81,21 @@
         "date": "2026-02-25",
         "time": "19:47",
         "source": "Wolt",
-        "orderNumber": "699f3a12ca743ae24b0cba51",
         "items": [
-          { "name": "Wiener Schnitzel vom Kalb", "qty": 1, "unitPrice": 28.50 },
-          { "name": "Pommes frites (Beilage)", "qty": 1, "unitPrice": 0.00 }
+          {
+            "name": "Wiener Schnitzel vom Kalb",
+            "qty": 1,
+            "unitPrice": 28.5
+          },
+          {
+            "name": "Pommes frites (Beilage)",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
         ],
+        "orderNumber": "699f3a12ca743ae24b0cba51",
         "rating": 3,
         "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße. Alles sehr gut!"
-      }
-    ]
-  },
-  "malatang": {
-    "name": "Malatang 麻辣煮義",
-    "slug": "malatang",
-    "address": "München",
-    "orders": [
-      {
-        "date": "2026-02-28",
-        "time": "20:15",
-        "source": "Wolt",
-        "orderNumber": "69a338f30a0ed12d04f6aa34",
-        "items": [
-          { "name": "烤鸭盖饭 (Crispy Roasted Duck Rice)", "qty": 1, "unitPrice": 16.90 },
-          { "name": "Thai Curry (scharf)", "qty": 1, "unitPrice": 0.00 }
-        ],
-        "discount": -4.23,
-        "tip": 1.00,
-        "serviceFee": 0.62,
-        "total": 14.29,
-        "rating": 4,
-        "notes": "Crispy Roasted Duck Rice mit Thai Curry (scharf) – gut!"
-      }
-    ]
-  },
-  "trattoria-marano": {
-    "name": "Trattoria Marano",
-    "slug": "trattoria-marano",
-    "address": "München",
-    "orders": [
-      {
-        "date": "2026-03-01",
-        "time": "17:25",
-        "source": "Wolt",
-        "orderNumber": "69a4712fd6d0a0e57e67993e",
-        "items": [
-          { "name": "Pizza Margherita", "qty": 1, "unitPrice": 10.90 },
-          { "name": "Insalata Mista", "qty": 1, "unitPrice": 6.50 },
-          { "name": "Penne all'Arrabbiata", "qty": 1, "unitPrice": 10.90 }
-        ],
-        "delivery": 0.00,
-        "tip": 1.41,
-        "serviceFee": 1.98,
-        "discount": -0.59,
-        "total": 31.10,
-        "rating": 3,
-        "notes": "Gute, stabile Pizza. Salat in großer Schüssel, auch lecker. Sehr große Portion. Alles sehr stabil."
       }
     ]
   },
@@ -117,40 +108,126 @@
         "date": "2026-03-03",
         "time": "18:50",
         "source": "Wolt",
-        "orderNumber": "69a727f90a30528ffb601a5d",
         "items": [
-          { "name": "Dal Shorba", "qty": 1, "unitPrice": 5.90 },
-          { "name": "Chicken Vindaloo", "qty": 1, "unitPrice": 16.90 }
+          {
+            "name": "Dal Shorba",
+            "qty": 1,
+            "unitPrice": 5.9
+          },
+          {
+            "name": "Chicken Vindaloo",
+            "qty": 1,
+            "unitPrice": 16.9
+          }
         ],
-        "delivery": 0.00,
+        "orderNumber": "69a727f90a30528ffb601a5d",
         "tip": 1.14,
-        "serviceFee": 1.60,
-        "discount": -0.48,
-        "total": 25.06
+        "serviceFee": 1.6,
+        "discount": -0.48
       }
     ]
   },
-  "taverna-paros": {
-    "name": "Taverna Paros",
-    "slug": "taverna-paros",
-    "address": "Kirchenstraße 27, 81675 München",
+  "lithos": {
+    "name": "Lithos",
+    "slug": "lithos",
+    "address": "St.-Martin-Straße 38, 81541 München",
     "orders": [
       {
-        "date": "2026-03-08",
-        "time": "19:22",
+        "date": "2026-03-15",
+        "time": "20:27",
         "source": "Wolt",
-        "orderNumber": "69adb37b6af1fd6f5603f956",
         "items": [
-          { "name": "Paros Teller", "qty": 1, "unitPrice": 22.80 },
-          { "name": "Deine Beilage: Salat", "qty": 1, "unitPrice": 0.00 }
+          {
+            "name": "Lithos Grillteller",
+            "qty": 1,
+            "unitPrice": 24.4
+          },
+          {
+            "name": "Beilagensalat",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
         ],
-        "delivery": 0.00,
-        "tip": 1.14,
-        "serviceFee": 1.82,
-        "discount": -0.73,
-        "total": 25.03,
+        "orderNumber": "69b6ffd3e6b3b44a9a33c0bd",
+        "tip": 1.22,
+        "serviceFee": 1.17,
+        "rating": 3,
+        "notes": "Souvlaki und Bifteki wirklich frisch und nicht trocken – ganz selten! Gutes Gyros. Salat etwas klein, aber insgesamt gut. Paros-Quali noch nicht erreicht."
+      }
+    ]
+  },
+  "malatang": {
+    "name": "Malatang 麻辣煮義",
+    "slug": "malatang",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-02-28",
+        "time": "20:15",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "烤鸭盖饭 (Crispy Roasted Duck Rice)",
+            "qty": 1,
+            "unitPrice": 16.9
+          },
+          {
+            "name": "Thai Curry (scharf)",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
+        ],
+        "orderNumber": "69a338f30a0ed12d04f6aa34",
+        "tip": 1.0,
+        "serviceFee": 0.62,
+        "discount": -4.23,
         "rating": 4,
-        "notes": "Paros wie immer top – Lamm ganz besonders gut, Grillteller toll, wieder Kuchen und Brot dazu. Perfekt."
+        "notes": "Crispy Roasted Duck Rice mit Thai Curry (scharf) – gut!"
+      },
+      {
+        "date": "2026-03-21",
+        "time": "20:27",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "烤鸭盖饭 (Knusprig gebratene Ente)",
+            "qty": 1,
+            "unitPrice": 16.9
+          },
+          {
+            "name": "Thai-Curry (scharf)",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
+        ],
+        "orderNumber": "69beed05103f216d796edb4e",
+        "tip": 1.0,
+        "serviceFee": 1.08,
+        "discount": -3.38
+      }
+    ]
+  },
+  "palast-der-winde": {
+    "name": "Palast der Winde",
+    "slug": "palast-der-winde",
+    "address": "Hans-Sachs-Straße 8, 80469 München",
+    "orders": [
+      {
+        "date": "2026-02-26",
+        "time": "20:34",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "82. Gemischte Grillplatte",
+            "qty": 1,
+            "unitPrice": 16.9
+          }
+        ],
+        "orderNumber": "69a0991dbed5e4ed27b9a2ed",
+        "tip": 1.0,
+        "serviceFee": 0.83,
+        "rating": 4,
+        "notes": "Grillplatte wieder top – lecker Fleisch, lecker Soße, Salat und Reis. Wie immer großartig."
       }
     ]
   },
@@ -163,18 +240,93 @@
         "date": "2026-03-13",
         "time": "20:28",
         "source": "Wolt",
-        "orderNumber": "69b46b5e5786791b682d1990",
         "items": [
-          { "name": "Insalata Mista", "qty": 1, "unitPrice": 7.90 },
-          { "name": "Pizza Margherita", "qty": 1, "unitPrice": 11.90 },
-          { "name": "Pizza Prosciutto", "qty": 1, "unitPrice": 14.50 }
+          {
+            "name": "Insalata Mista",
+            "qty": 1,
+            "unitPrice": 7.9
+          },
+          {
+            "name": "Pizza Margherita",
+            "qty": 1,
+            "unitPrice": 11.9
+          },
+          {
+            "name": "Pizza Prosciutto",
+            "qty": 1,
+            "unitPrice": 14.5
+          }
         ],
-        "delivery": 2.99,
+        "orderNumber": "69b46b5e5786791b682d1990",
         "tip": 1.71,
         "serviceFee": 2.74,
-        "total": 41.74,
         "rating": 4,
         "notes": "Pizzen waren super. Schön groß, wirklich gut. Diesmal auch mehr Käse als früher drauf – richtig nice."
+      }
+    ]
+  },
+  "taverna-paros": {
+    "name": "Taverna Paros",
+    "slug": "taverna-paros",
+    "address": "Kirchenstraße 27, 81675 München",
+    "orders": [
+      {
+        "date": "2026-03-08",
+        "time": "19:22",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "Paros Teller",
+            "qty": 1,
+            "unitPrice": 22.8
+          },
+          {
+            "name": "Deine Beilage: Salat",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
+        ],
+        "orderNumber": "69adb37b6af1fd6f5603f956",
+        "tip": 1.14,
+        "serviceFee": 1.82,
+        "discount": -0.73,
+        "rating": 4,
+        "notes": "Paros wie immer top – Lamm ganz besonders gut, Grillteller toll, wieder Kuchen und Brot dazu. Perfekt."
+      }
+    ]
+  },
+  "trattoria-marano": {
+    "name": "Trattoria Marano",
+    "slug": "trattoria-marano",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-03-01",
+        "time": "17:25",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "Pizza Margherita",
+            "qty": 1,
+            "unitPrice": 10.9
+          },
+          {
+            "name": "Insalata Mista",
+            "qty": 1,
+            "unitPrice": 6.5
+          },
+          {
+            "name": "Penne all'Arrabbiata",
+            "qty": 1,
+            "unitPrice": 10.9
+          }
+        ],
+        "orderNumber": "69a4712fd6d0a0e57e67993e",
+        "tip": 1.41,
+        "serviceFee": 1.98,
+        "discount": -0.59,
+        "rating": 3,
+        "notes": "Gute, stabile Pizza. Salat in großer Schüssel, auch lecker. Sehr große Portion. Alles sehr stabil."
       }
     ]
   }
