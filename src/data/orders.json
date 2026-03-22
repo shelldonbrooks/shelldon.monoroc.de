@@ -294,6 +294,21 @@
         "discount": -0.73,
         "rating": 4,
         "notes": "Paros wie immer top – Lamm ganz besonders gut, Grillteller toll, wieder Kuchen und Brot dazu. Perfekt."
+      },
+      {
+        "date": "2026-03-22",
+        "time": "19:46",
+        "source": "Wolt",
+        "items": [
+          {
+            "name": "Paros Teller",
+            "qty": 1,
+            "unitPrice": 22.8
+          }
+        ],
+        "orderNumber": "69c0314ca5bf45ca8dcc1912",
+        "rating": 4,
+        "notes": "Alles super wie immer – diesmal besonderer Kuchen, Brot super frisch, Salat top"
       }
     ]
   },
