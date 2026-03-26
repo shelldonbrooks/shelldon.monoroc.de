@@ -1,0 +1,246 @@
+---
+// Nebula Cloud - Volumetric particle nebula with turbulence
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nebula Cloud - Shelldon Brooks</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #000;
+    }
+    #canvas-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .title {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: #b57bee;
+      font-size: 0.8rem;
+      margin-top: 0.15rem;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div class="bottom-bar">
+    <div>
+      <div class="title">🌌 Nebula Cloud</div>
+      <div class="subtitle">Drag to rotate · Scroll to zoom</div>
+    </div>
+    <a href="/" class="back-btn">← Home</a>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" is:inline>
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 0, 18);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.04;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.3;
+    controls.minDistance = 5;
+    controls.maxDistance = 40;
+
+    // Simplex-like noise using sin/cos trick
+    function noise3(x, y, z) {
+      return Math.sin(x * 1.1 + y * 2.3) * Math.cos(y * 1.7 + z * 0.9) * Math.sin(z * 2.1 + x * 0.7);
+    }
+
+    // Color palette: purple, pink, cyan, blue-violet
+    const COLORS = [
+      new THREE.Color(0.7, 0.1, 1.0),   // violet
+      new THREE.Color(1.0, 0.1, 0.6),   // pink
+      new THREE.Color(0.0, 0.8, 1.0),   // cyan
+      new THREE.Color(0.4, 0.0, 0.9),   // deep purple
+      new THREE.Color(0.9, 0.3, 0.8),   // magenta
+      new THREE.Color(0.1, 0.4, 1.0),   // blue
+    ];
+
+    const LAYER_CONFIGS = [
+      { count: 15000, spread: 8,  density: 0.6, sizeBase: 0.08, turbulence: 1.2 },
+      { count: 10000, spread: 5,  density: 1.0, sizeBase: 0.06, turbulence: 0.8 },
+      { count: 8000,  spread: 12, density: 0.3, sizeBase: 0.1,  turbulence: 1.6 },
+      { count: 5000,  spread: 3,  density: 1.2, sizeBase: 0.05, turbulence: 0.4 },
+    ];
+
+    const layers = [];
+
+    LAYER_CONFIGS.forEach((cfg, li) => {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(cfg.count * 3);
+      const colors    = new Float32Array(cfg.count * 3);
+      const sizes     = new Float32Array(cfg.count);
+      const phases    = new Float32Array(cfg.count);
+
+      for (let i = 0; i < cfg.count; i++) {
+        const i3 = i * 3;
+
+        // Spherical distribution with density falloff
+        const r = Math.pow(Math.random(), cfg.density) * cfg.spread;
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.acos(2 * Math.random() - 1);
+
+        let x = r * Math.sin(phi) * Math.cos(theta);
+        let y = r * Math.sin(phi) * Math.sin(theta) * 0.6; // flatten slightly
+        let z = r * Math.cos(phi);
+
+        // Turbulence displacement
+        const t = cfg.turbulence;
+        x += noise3(x * 0.4, y * 0.4, z * 0.4) * t;
+        y += noise3(y * 0.4, z * 0.4, x * 0.4) * t;
+        z += noise3(z * 0.4, x * 0.4, y * 0.4) * t;
+
+        positions[i3]     = x;
+        positions[i3 + 1] = y;
+        positions[i3 + 2] = z;
+
+        // Color: blend between 2 palette colors based on position
+        const colorIdx = Math.floor(Math.random() * COLORS.length);
+        const c = COLORS[colorIdx];
+        const brightness = 0.5 + Math.random() * 0.5;
+        colors[i3]     = c.r * brightness;
+        colors[i3 + 1] = c.g * brightness;
+        colors[i3 + 2] = c.b * brightness;
+
+        sizes[i]  = cfg.sizeBase * (0.5 + Math.random());
+        phases[i] = Math.random() * Math.PI * 2;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute('size',     new THREE.BufferAttribute(sizes, 1));
+
+      const material = new THREE.PointsMaterial({
+        size: cfg.sizeBase,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.85,
+      });
+
+      const points = new THREE.Points(geometry, material);
+      points.userData = { phases, cfg, origPositions: positions.slice() };
+      scene.add(points);
+      layers.push(points);
+    });
+
+    // Central glow
+    const glowGeo = new THREE.SphereGeometry(0.8, 16, 16);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: 0xaa44ff,
+      transparent: true,
+      opacity: 0.15,
+      blending: THREE.AdditiveBlending,
+    });
+    scene.add(new THREE.Mesh(glowGeo, glowMat));
+
+    let clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      layers.forEach((pts, li) => {
+        const { phases, cfg, origPositions } = pts.userData;
+        const pos = pts.geometry.attributes.position.array;
+
+        for (let i = 0; i < cfg.count; i++) {
+          const i3 = i * 3;
+          const ph = phases[i];
+          const ox = origPositions[i3];
+          const oy = origPositions[i3 + 1];
+          const oz = origPositions[i3 + 2];
+
+          // Soft breathing / drift
+          const drift = 0.15;
+          pos[i3]     = ox + Math.sin(t * 0.3 + ph)       * drift;
+          pos[i3 + 1] = oy + Math.sin(t * 0.4 + ph + 1.5) * drift * 0.7;
+          pos[i3 + 2] = oz + Math.cos(t * 0.25 + ph)      * drift;
+        }
+        pts.geometry.attributes.position.needsUpdate = true;
+
+        // Slow individual layer rotation
+        pts.rotation.y = t * 0.015 * (li % 2 === 0 ? 1 : -1);
+        pts.rotation.x = Math.sin(t * 0.05) * 0.1;
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

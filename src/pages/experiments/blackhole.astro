@@ -1,0 +1,277 @@
+---
+// Black Hole - Accretion disk particle system with gravitational lensing effect
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Hole - Shelldon Brooks</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      background: #000;
+    }
+    #canvas-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .title {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .subtitle {
+      color: #ff8833;
+      font-size: 0.8rem;
+      margin-top: 0.15rem;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-weight: 500;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div class="bottom-bar">
+    <div>
+      <div class="title">🕳️ Black Hole</div>
+      <div class="subtitle">Drag to rotate · Scroll to zoom</div>
+    </div>
+    <a href="/" class="back-btn">← Home</a>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" is:inline>
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 300);
+    camera.position.set(0, 8, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.04;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.15;
+    controls.minDistance = 5;
+    controls.maxDistance = 50;
+
+    // ─── Black hole event horizon ───────────────────────────────────────────
+    const horizonGeo = new THREE.SphereGeometry(1.4, 32, 32);
+    const horizonMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    scene.add(new THREE.Mesh(horizonGeo, horizonMat));
+
+    // ─── Photon ring / light ring ────────────────────────────────────────────
+    // Several torii stacked at slight inclinations to simulate lensing
+    const RING_CONFIGS = [
+      { r: 1.55, tube: 0.04, color: 0xffffff, opacity: 0.9 },
+      { r: 1.75, tube: 0.06, color: 0xffddaa, opacity: 0.7 },
+      { r: 2.0,  tube: 0.05, color: 0xff9944, opacity: 0.5 },
+    ];
+    RING_CONFIGS.forEach(({ r, tube, color, opacity }) => {
+      const geo = new THREE.TorusGeometry(r, tube, 16, 100);
+      const mat = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const ring = new THREE.Mesh(geo, mat);
+      ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.08;
+      scene.add(ring);
+    });
+
+    // ─── Accretion disk particle system ─────────────────────────────────────
+    const DISK_PARTICLES = 35000;
+    const diskGeo = new THREE.BufferGeometry();
+    const diskPos    = new Float32Array(DISK_PARTICLES * 3);
+    const diskColors = new Float32Array(DISK_PARTICLES * 3);
+    const diskAngles = new Float32Array(DISK_PARTICLES);   // current orbital angle
+    const diskRadii  = new Float32Array(DISK_PARTICLES);   // orbital radius
+    const diskYOff   = new Float32Array(DISK_PARTICLES);   // vertical offset
+    const diskSpeeds = new Float32Array(DISK_PARTICLES);   // angular speed
+
+    // Temperature → color: inner = white/blue-white, mid = orange/yellow, outer = dark red
+    function diskColor(r, minR, maxR) {
+      const t = (r - minR) / (maxR - minR); // 0=inner, 1=outer
+      if (t < 0.25) {
+        // hot inner: white-ish blue
+        return new THREE.Color(0.9 + t * 0.1, 0.85 + t * 0.1, 1.0);
+      } else if (t < 0.55) {
+        // warm mid: orange-yellow
+        const s = (t - 0.25) / 0.3;
+        return new THREE.Color(1.0, 0.7 - s * 0.3, 0.1 - s * 0.1);
+      } else {
+        // cool outer: dark red → invisible
+        const s = (t - 0.55) / 0.45;
+        return new THREE.Color(0.8 - s * 0.7, 0.2 - s * 0.18, 0.02);
+      }
+    }
+
+    const DISK_INNER = 2.2;
+    const DISK_OUTER = 12.0;
+
+    for (let i = 0; i < DISK_PARTICLES; i++) {
+      // Concentrated near inner edge (1/r² distribution)
+      const u = Math.random();
+      const r = DISK_INNER + (DISK_OUTER - DISK_INNER) * (1 - Math.pow(1 - u, 2.5));
+      const angle = Math.random() * Math.PI * 2;
+
+      diskRadii[i]  = r;
+      diskAngles[i] = angle;
+      diskYOff[i]   = (Math.random() - 0.5) * 0.25 * Math.exp(-(r - DISK_INNER) * 0.4);
+      // Keplerian: ω ∝ r^(-3/2)
+      diskSpeeds[i] = 0.4 * Math.pow(r, -1.5);
+
+      const c = diskColor(r, DISK_INNER, DISK_OUTER);
+      const brightness = 0.4 + 0.6 * Math.random();
+      diskColors[i * 3]     = c.r * brightness;
+      diskColors[i * 3 + 1] = c.g * brightness;
+      diskColors[i * 3 + 2] = c.b * brightness;
+    }
+
+    diskGeo.setAttribute('position', new THREE.BufferAttribute(diskPos, 3));
+    diskGeo.setAttribute('color',    new THREE.BufferAttribute(diskColors, 3));
+
+    const diskMat = new THREE.PointsMaterial({
+      size: 0.05,
+      sizeAttenuation: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const diskPoints = new THREE.Points(diskGeo, diskMat);
+    scene.add(diskPoints);
+
+    // ─── Background stars ────────────────────────────────────────────────────
+    const starCount = 3000;
+    const starGeo   = new THREE.BufferGeometry();
+    const starPos   = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const r     = 60 + Math.random() * 100;
+      const theta = Math.random() * Math.PI * 2;
+      const phi   = Math.acos(2 * Math.random() - 1);
+      starPos[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      starPos[i * 3 + 2] = r * Math.cos(phi);
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
+      size: 0.12, color: 0xffffff, transparent: true, opacity: 0.6,
+    })));
+
+    // ─── Relativistic jets ──────────────────────────────────────────────────
+    const JET_PARTICLES = 2000;
+    [1, -1].forEach(dir => {
+      const jetGeo   = new THREE.BufferGeometry();
+      const jetPos   = new Float32Array(JET_PARTICLES * 3);
+      const jetColors = new Float32Array(JET_PARTICLES * 3);
+      for (let i = 0; i < JET_PARTICLES; i++) {
+        const t = Math.random();
+        const r = Math.random() * 0.4 * (1 - t);
+        const angle = Math.random() * Math.PI * 2;
+        jetPos[i * 3]     = Math.cos(angle) * r;
+        jetPos[i * 3 + 1] = dir * (t * 14 + 1.5);
+        jetPos[i * 3 + 2] = Math.sin(angle) * r;
+        const bright = 1 - t * 0.85;
+        jetColors[i * 3]     = 0.4 * bright;
+        jetColors[i * 3 + 1] = 0.6 * bright;
+        jetColors[i * 3 + 2] = bright;
+      }
+      jetGeo.setAttribute('position', new THREE.BufferAttribute(jetPos, 3));
+      jetGeo.setAttribute('color',    new THREE.BufferAttribute(jetColors, 3));
+      scene.add(new THREE.Points(jetGeo, new THREE.PointsMaterial({
+        size: 0.07,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.7,
+      })));
+    });
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      // Orbit disk particles
+      const pos = diskPoints.geometry.attributes.position.array;
+      for (let i = 0; i < DISK_PARTICLES; i++) {
+        diskAngles[i] += diskSpeeds[i] * dt;
+        const a = diskAngles[i];
+        const r = diskRadii[i];
+        pos[i * 3]     = Math.cos(a) * r;
+        pos[i * 3 + 1] = diskYOff[i];
+        pos[i * 3 + 2] = Math.sin(a) * r;
+      }
+      diskPoints.geometry.attributes.position.needsUpdate = true;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
