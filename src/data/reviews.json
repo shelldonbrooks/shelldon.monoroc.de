@@ -49,8 +49,8 @@
   { "year": 2025, "name": "Anjappar",               "cuisine": "🍛", "rating": 2, "notes": "Mutton Varutha Curry mit ganzen Gewürzen (Sternanis etc.). Suppe gut aber sehr salzig. Lammcurry gut, nach Suppe etwas lasch" },
   { "year": 2026, "name": "Das Neuhausen",          "cuisine": "🥩", "rating": 1, "notes": "Gute Schnitzel, Pommes bisschen lasch, kleiner Salat ok" },
   { "year": 2026, "name": "Watan Kabab",            "cuisine": "🥙", "rating": 3, "notes": "Leckere Spieße, toller Salat und Chutney!" },
-  { "year": 2026, "name": "Tannengarten",           "cuisine": "🥨", "rating": 2, "date": "17.2.", "notes": "Guter Schweinsbraten, gute Käsespätzle, große Portionen, guter Salat" },
+  { "year": 2026, "name": "Tannengarten",           "cuisine": "🥨", "rating": 3, "date": "25.3.", "notes": "Münchner Schnitzel gut, Kartoffelsalat hausgemacht mit viel Zwiebel, Käsespätzle gut, Beilagensalat groß. Weiterhin auf sehr gutem Weg." },
   { "year": 2026, "name": "Gasthaus FUX",           "cuisine": "🥩", "rating": 3, "date": "25.2.", "notes": "Gutes Wiener Schnitzel, leckere Pommes, Salat mit Paprika gut, Dressing unten – nicht zu viel Soße" },
   { "year": 2026, "name": "Trattoria Marano",      "cuisine": "🍝", "rating": 3, "date": "1.3.",   "notes": "Gute, stabile Pizza. Salat in großer Schüssel, auch lecker. Sehr große Portion." },
-  { "year": 2026, "name": "Indian Accent",         "cuisine": "🍛", "rating": 0, "date": "3.3.",   "notes": "" }
+  { "year": 2026, "name": "Indian Accent",         "cuisine": "🍛", "rating": 3, "date": "3.3.",   "notes": "Vindaloo lecker, könnte ruhig schärfer sein." }
 ]
