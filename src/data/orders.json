@@ -123,7 +123,9 @@
         "orderNumber": "69a727f90a30528ffb601a5d",
         "tip": 1.14,
         "serviceFee": 1.6,
-        "discount": -0.48
+        "discount": -0.48,
+        "rating": 3,
+        "notes": "Vindaloo gut und lecker, könnte ruhig schärfer sein. Insgesamt solide."
       }
     ]
   },
@@ -266,6 +268,33 @@
         "notes": "Pizzen waren super. Schön groß, wirklich gut. Diesmal auch mehr Käse als früher drauf – richtig nice."
       }
     ]
+  },
+  "tannengarten": {
+    "name": "Tannengarten",
+    "slug": "tannengarten",
+    "address": "München",
+    "orders": [
+      {
+        "date": "2026-03-25",
+        "time": "19:12",
+        "source": "wolt",
+        "items": [
+          {
+            "name": "Münchner Schnitzel",
+            "qty": 1,
+            "unitPrice": 0.0
+          },
+          {
+            "name": "Käsespätzle",
+            "qty": 1,
+            "unitPrice": 0.0
+          }
+        ],
+        "rating": 3,
+        "notes": "Zweite Bestellung – Münchner Schnitzel gut, Kartoffelsalat etwas warm aber hat hausgemacht geschmeckt mit hohem Zwiebelanteil. Käsespätzle gut, Beilagensalat groß. Weiterhin auf sehr gutem Weg."
+      }
+    ],
+    "cuisine": "Bayerisch"
   },
   "taverna-paros": {
     "name": "Taverna Paros",
