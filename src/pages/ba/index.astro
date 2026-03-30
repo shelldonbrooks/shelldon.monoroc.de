@@ -1,11 +1,13 @@
 ---
 import '../../styles/global.css';
-import sessionsRaw from '../../data/ba_sessions.json';
+import dataRaw from '../../data/ba_sessions.json';
 
 const title = "BA 02 Sitzungen | Shelldon Brooks";
 const description = "Bezirksausschuss 02 Ludwigsvorstadt-Isarvorstadt – Sitzungsübersicht mit Tagesordnungen, Anträgen und Protokollen.";
 
-const sessions = sessionsRaw as any[];
+const allData = dataRaw as any;
+const sessions: any[] = allData.sessions ?? allData;
+const stats: any = allData.stats ?? {};
 
 const STATUS_CONFIG: { [key: string]: { label: string; color: string; icon: string } } = {
   complete:       { label: "Vollständig",    color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", icon: "✅" },
@@ -15,13 +17,6 @@ const STATUS_CONFIG: { [key: string]: { label: string; color: string; icon: stri
   to_only:        { label: "Nur TO",         color: "text-orange-400 bg-orange-400/10 border-orange-400/20",   icon: "📋" },
   upcoming:       { label: "Geplant",        color: "text-slate-400 bg-slate-400/10 border-slate-400/20",      icon: "📅" },
   empty:          { label: "Lückenhaft",     color: "text-red-400 bg-red-400/10 border-red-400/20",            icon: "❌" },
-};
-
-const SECTION_LABELS: { [key: string]: string } = {
-  A: "Kultur / Jugend / Soziales",
-  B: "Mobilität / Straßenraum",
-  C: "Planung / Umwelt",
-  D: "Sicherheit / Ordnung",
 };
 
 function formatDate(dateStr: string): string {
@@ -34,9 +29,31 @@ function getDocsByKind(docs: any[], kind: string) {
   return docs.filter((d: any) => d.kind === kind);
 }
 
+function formatEur(val: number): string {
+  return val.toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €";
+}
+
+function beIcon(be_typ: string): string {
+  if (be_typ === 'zustimmung') return '✅';
+  if (be_typ === 'ablehnung') return '❌';
+  if (be_typ === 'vertagung') return '⏳';
+  return '';
+}
+
 const now = new Date().toISOString().slice(0, 10);
-const pastSessions = sessions.filter(s => s.date < now);
-const futureSessions = sessions.filter(s => s.date >= now);
+const pastSessions = sessions.filter((s: any) => s.date < now);
+const futureSessions = sessions.filter((s: any) => s.date >= now);
+
+// Stats
+const uaActivity: any[] = stats.ua_activity ?? [];
+const fsf: any = stats.fsf ?? {};
+const fsfByYear: any[] = fsf.by_year ?? [];
+const fsfByResult: any = fsf.by_result ?? {};
+const budget: any = stats.budget ?? {};
+const budgetByYear: any[] = budget.by_year ?? [];
+
+const uaMax = uaActivity.length > 0 ? Math.max(...uaActivity.map((u: any) => u.count)) : 1;
+const budgetMaxTotal = budgetByYear.length > 0 ? Math.max(...budgetByYear.map((b: any) => b.total_eur)) : 1;
 ---
 
 <!DOCTYPE html>
@@ -52,7 +69,7 @@ const futureSessions = sessions.filter(s => s.date >= now);
 
   <!-- Header -->
   <header class="border-b border-sky-400/10">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-5 flex items-center gap-4">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex items-center gap-4">
       <a href="/" class="text-slate-500 hover:text-sky-400 transition-colors text-sm shrink-0">← Home</a>
       <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">🏛️ BA 02 Sitzungen</h1>
@@ -61,10 +78,10 @@ const futureSessions = sessions.filter(s => s.date >= now);
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 pb-20">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-20 space-y-12">
 
-    <!-- Legende -->
-    <section class="mb-8 p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
+    <!-- Status-Legende -->
+    <section class="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50">
       <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Status-Legende</h2>
       <div class="flex flex-wrap gap-2">
         {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
@@ -75,12 +92,178 @@ const futureSessions = sessions.filter(s => s.date >= now);
       </div>
     </section>
 
+    <!-- ── STATISTIKEN ─────────────────────────────────────────────── -->
+    <section class="space-y-8">
+      <h2 class="text-xl font-bold text-white">📊 Statistiken</h2>
+
+      <!-- Aktivität nach Unterausschuss -->
+      {uaActivity.length > 0 && (
+        <div class="rounded-xl border border-slate-700/50 bg-slate-800/30 p-5">
+          <h3 class="text-sm font-semibold text-slate-300 mb-4">Aktivität nach Unterausschuss (Tagesordnungspunkte gesamt)</h3>
+          <div class="space-y-2.5">
+            {uaActivity.map((ua: any) => {
+              const pct = Math.round((ua.count / uaMax) * 100);
+              return (
+                <div class="flex items-center gap-3">
+                  <div class="w-7 text-xs text-slate-500 text-right shrink-0 font-mono">{ua.ua}</div>
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-0.5">
+                      <div class="text-xs text-slate-300 truncate" style="max-width: 260px">{ua.label}</div>
+                      <div class="text-xs text-slate-500 ml-auto shrink-0">{ua.count}</div>
+                    </div>
+                    <div class="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                      <div class="h-full bg-sky-500/70 rounded-full" style={`width: ${Math.max(pct, 1)}%`}></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <!-- Freischankflächen / Schanigärten -->
+      {fsf.total > 0 && (
+        <div class="rounded-xl border border-slate-700/50 bg-slate-800/30 p-5">
+          <h3 class="text-sm font-semibold text-slate-300 mb-1">🍺 Freischankflächen & Schanigärten</h3>
+          <p class="text-xs text-slate-500 mb-4">Anträge, Entscheidungen und Anhörungen mit Bezug zu Freischankflächen/FSF/Schanigärten</p>
+          <!-- Gesamtzahlen -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-slate-700/30 rounded-lg p-3 text-center">
+              <div class="text-xl font-bold text-white">{fsf.total}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Gesamt</div>
+            </div>
+            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-center">
+              <div class="text-xl font-bold text-emerald-400">{fsfByResult.einstimmig ?? 0}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Einstimmig</div>
+            </div>
+            <div class="bg-sky-500/10 border border-sky-500/20 rounded-lg p-3 text-center">
+              <div class="text-xl font-bold text-sky-400">{fsfByResult.mehrheitlich ?? 0}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Mehrheitlich</div>
+            </div>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+              <div class="text-xl font-bold text-red-400">{fsfByResult.abgelehnt ?? 0}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Abgelehnt</div>
+            </div>
+          </div>
+          <!-- Pro Jahr -->
+          <div class="space-y-1.5">
+            {fsfByYear.map((yr: any) => {
+              const total = yr.total || 1;
+              const einPct = Math.round((yr.einstimmig / total) * 100);
+              const mehrPct = Math.round((yr.mehrheitlich / total) * 100);
+              const ablPct = Math.round((yr.abgelehnt / total) * 100);
+              const unkPct = Math.round(((yr.unbekannt ?? 0) / total) * 100);
+              return (
+                <div class="flex items-center gap-3 text-xs">
+                  <div class="w-10 text-slate-500 text-right shrink-0 font-mono">{yr.year}</div>
+                  <div class="flex-1 h-5 flex rounded overflow-hidden gap-px">
+                    {yr.einstimmig > 0 && (
+                      <div class="bg-emerald-500/60 flex items-center justify-center text-[10px] text-emerald-200"
+                           style={`width: ${Math.max(einPct, 1)}%; min-width: 1.5rem`}
+                           title={`Einstimmig: ${yr.einstimmig}`}>{yr.einstimmig}</div>
+                    )}
+                    {yr.mehrheitlich > 0 && (
+                      <div class="bg-sky-500/60 flex items-center justify-center text-[10px] text-sky-200"
+                           style={`width: ${Math.max(mehrPct, 1)}%; min-width: 1.5rem`}
+                           title={`Mehrheitlich: ${yr.mehrheitlich}`}>{yr.mehrheitlich}</div>
+                    )}
+                    {yr.abgelehnt > 0 && (
+                      <div class="bg-red-500/60 flex items-center justify-center text-[10px] text-red-200"
+                           style={`width: ${Math.max(ablPct, 1)}%; min-width: 1.5rem`}
+                           title={`Abgelehnt: ${yr.abgelehnt}`}>{yr.abgelehnt}</div>
+                    )}
+                    {(yr.unbekannt ?? 0) > 0 && (
+                      <div class="bg-slate-600/60 flex items-center justify-center text-[10px] text-slate-400"
+                           style={`width: ${Math.max(unkPct, 1)}%; min-width: 1.5rem`}
+                           title={`Offen/unbekannt: ${yr.unbekannt}`}>{yr.unbekannt}</div>
+                    )}
+                  </div>
+                  <div class="w-6 text-slate-500 shrink-0 text-right">{yr.total}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div class="flex gap-4 mt-3 text-xs text-slate-500">
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500/60 mr-1"></span>Einstimmig</span>
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-sky-500/60 mr-1"></span>Mehrheitlich</span>
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500/60 mr-1"></span>Abgelehnt</span>
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-slate-600/60 mr-1"></span>Offen</span>
+          </div>
+        </div>
+      )}
+
+      <!-- Stadtbezirksbudget -->
+      {budget.total > 0 && (
+        <div class="rounded-xl border border-slate-700/50 bg-slate-800/30 p-5">
+          <h3 class="text-sm font-semibold text-slate-300 mb-1">💰 Stadtbezirksbudget</h3>
+          <p class="text-xs text-slate-500 mb-4">Tagesordnungspunkte mit Bezug zum Stadtbezirksbudget, inkl. bewilligte/abgelehnte Beträge</p>
+          <!-- Gesamtzahlen -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-slate-700/30 rounded-lg p-3 text-center">
+              <div class="text-xl font-bold text-white">{budget.total}</div>
+              <div class="text-xs text-slate-500 mt-0.5">TOPs gesamt</div>
+            </div>
+            <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-center">
+              <div class="text-base font-bold text-emerald-400">{formatEur(budget.approved_eur ?? 0)}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Bewilligt</div>
+            </div>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+              <div class="text-base font-bold text-red-400">{formatEur(budget.rejected_eur ?? 0)}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Abgelehnt</div>
+            </div>
+            <div class="bg-sky-500/10 border border-sky-500/20 rounded-lg p-3 text-center">
+              <div class="text-base font-bold text-sky-400">{formatEur(budget.total_eur ?? 0)}</div>
+              <div class="text-xs text-slate-500 mt-0.5">Volumen gesamt</div>
+            </div>
+          </div>
+          <!-- Pro Jahr -->
+          <div class="space-y-1.5">
+            {budgetByYear.map((yr: any) => {
+              const totalEur = yr.total_eur || 1;
+              const appPct = Math.round(((yr.approved_eur ?? 0) / totalEur) * 100);
+              const rejPct = Math.round(((yr.rejected_eur ?? 0) / totalEur) * 100);
+              return (
+                <div class="flex items-center gap-3 text-xs">
+                  <div class="w-10 text-slate-500 text-right shrink-0 font-mono">{yr.year}</div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <span class="text-slate-500">{yr.total} TOPs</span>
+                      <span class="text-slate-400">{formatEur(yr.total_eur ?? 0)}</span>
+                    </div>
+                    <div class="h-2 bg-slate-700/50 rounded-full overflow-hidden flex gap-px">
+                      {(yr.approved_eur ?? 0) > 0 && (
+                        <div class="h-full bg-emerald-500/70"
+                             style={`width: ${Math.max(appPct, 1)}%`}
+                             title={`Bewilligt: ${formatEur(yr.approved_eur)}`}></div>
+                      )}
+                      {(yr.rejected_eur ?? 0) > 0 && (
+                        <div class="h-full bg-red-500/60"
+                             style={`width: ${Math.max(rejPct, 1)}%`}
+                             title={`Abgelehnt: ${formatEur(yr.rejected_eur)}`}></div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div class="flex gap-4 mt-3 text-xs text-slate-500">
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500/70 mr-1"></span>Bewilligt</span>
+            <span><span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500/60 mr-1"></span>Abgelehnt</span>
+          </div>
+        </div>
+      )}
+    </section>
+
+    <!-- ── SITZUNGEN ───────────────────────────────────────────────── -->
+
     <!-- Kommende Sitzungen -->
     {futureSessions.length > 0 && (
-      <section class="mb-10">
+      <section>
         <h2 class="text-lg font-bold text-white mb-4">📅 Kommende Sitzungen</h2>
         <div class="space-y-3">
-          {futureSessions.map(s => {
+          {futureSessions.map((s: any) => {
             const cfg = STATUS_CONFIG[s.status] ?? STATUS_CONFIG.upcoming;
             const tos = getDocsByKind(s.documents, 'to');
             const nachtraege = getDocsByKind(s.documents, 'nachtrag');
@@ -133,7 +316,7 @@ const futureSessions = sessions.filter(s => s.date >= now);
     <section>
       <h2 class="text-lg font-bold text-white mb-4">📚 Vergangene Sitzungen</h2>
       <div class="space-y-4">
-        {pastSessions.map(s => {
+        {pastSessions.map((s: any) => {
           const cfg = STATUS_CONFIG[s.status] ?? STATUS_CONFIG.empty;
           const tos = getDocsByKind(s.documents, 'to');
           const nachtraege = getDocsByKind(s.documents, 'nachtrag');
@@ -141,14 +324,32 @@ const futureSessions = sessions.filter(s => s.date >= now);
           const manualProts = getDocsByKind(s.documents, 'manual_protokoll');
           const allProts = [...prots, ...manualProts];
 
-          // Anträge nach Sektion gruppieren
+          // Group items by type, then by section
           const antraege = s.items.filter((i: any) => i.item_type === 'antrag');
-          const antraegeBySection: { [sec: string]: any[] } = {};
-          for (const item of antraege) {
-            const sec = item.section ?? 'I';
-            if (!antraegeBySection[sec]) antraegeBySection[sec] = [];
-            antraegeBySection[sec].push(item);
+          const entscheidungen = s.items.filter((i: any) => i.item_type === 'entscheidung');
+          const anhoerungen = s.items.filter((i: any) => i.item_type === 'anhoerung');
+
+          function groupBySection(items: any[]): { [sec: string]: any[] } {
+            const result: { [sec: string]: any[] } = {};
+            for (const item of items) {
+              const sec = item.section ?? 'I';
+              if (!result[sec]) result[sec] = [];
+              result[sec].push(item);
+            }
+            return result;
           }
+
+          const antraegeBySection = groupBySection(antraege);
+          const entscheidungenBySection = groupBySection(entscheidungen);
+          const anhoerungBySection = groupBySection(anhoerungen);
+
+          // BE stats for summary
+          const allItems: any[] = s.items ?? [];
+          const beZustimmung = allItems.filter((i: any) => i.be_typ === 'zustimmung').length;
+          const beAblehnung = allItems.filter((i: any) => i.be_typ === 'ablehnung').length;
+          const beVertagung = allItems.filter((i: any) => i.be_typ === 'vertagung').length;
+          const beSonstiges = allItems.filter((i: any) => i.be_typ === 'sonstiges').length;
+          const hasBeData = beZustimmung + beAblehnung + beVertagung + beSonstiges > 0;
 
           return (
             <details class="group rounded-xl border border-slate-700/50 bg-slate-800/30 overflow-hidden">
@@ -166,6 +367,14 @@ const futureSessions = sessions.filter(s => s.date >= now);
                       {s.counts.antraege > 0 && <span>📨 {s.counts.antraege} Anträge</span>}
                       {s.counts.entscheidungen > 0 && <span>⚖️ {s.counts.entscheidungen} Entscheidungen</span>}
                       {s.counts.anhoerungen > 0 && <span>🎤 {s.counts.anhoerungen} Anhörungen</span>}
+                    </div>
+                  )}
+                  {hasBeData && (
+                    <div class="flex gap-1 text-xs">
+                      {beZustimmung > 0 && <span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✅{beZustimmung}</span>}
+                      {beAblehnung > 0 && <span class="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">❌{beAblehnung}</span>}
+                      {beVertagung > 0 && <span class="px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">⏳{beVertagung}</span>}
+                      {beSonstiges > 0 && <span class="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">ℹ️{beSonstiges}</span>}
                     </div>
                   )}
                 </div>
@@ -231,16 +440,29 @@ const futureSessions = sessions.filter(s => s.date >= now);
                       {Object.entries(antraegeBySection).map(([sec, items]) => (
                         <div>
                           <div class="text-xs font-medium text-slate-500 mb-1.5">
-                            {sec} – {SECTION_LABELS[sec] ?? sec}
+                            {sec} – {(items as any[])[0]?.section_label ?? sec}
                           </div>
                           <ul class="space-y-1">
                             {(items as any[]).map(item => (
                               <li class="flex items-start gap-2 text-sm">
                                 <span class="text-slate-600 shrink-0 mt-0.5 text-xs w-6 text-right">#{item.item_number ?? '–'}</span>
-                                <span class={`text-slate-300 leading-snug ${item.is_nachtrag ? 'italic' : ''}`}>
-                                  {item.is_nachtrag ? <span class="text-yellow-500 text-xs mr-1">[Nachtrag]</span> : null}
-                                  {item.title}
-                                </span>
+                                <div class="flex-1">
+                                  <span class={`text-slate-300 leading-snug ${item.is_nachtrag ? 'italic' : ''}`}>
+                                    {item.is_nachtrag ? <span class="text-yellow-500 text-xs mr-1">[Nachtrag]</span> : null}
+                                    {item.title}
+                                  </span>
+                                  {item.be_typ && item.be_typ !== 'sonstiges' && (
+                                    <span class="ml-1 text-xs" title={item.beschlussempfehlung ?? item.be_typ}>
+                                      {beIcon(item.be_typ)}
+                                    </span>
+                                  )}
+                                  {item.be_typ === 'sonstiges' && (
+                                    <details class="mt-1">
+                                      <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">ℹ️ Beschlussempfehlung</summary>
+                                      <p class="text-xs text-slate-400 mt-1 pl-2 border-l border-blue-500/30 leading-relaxed">{item.beschlussempfehlung}</p>
+                                    </details>
+                                  )}
+                                </div>
                               </li>
                             ))}
                           </ul>
@@ -250,7 +472,85 @@ const futureSessions = sessions.filter(s => s.date >= now);
                   </div>
                 )}
 
-                {antraege.length === 0 && s.counts.total === 0 && (
+                <!-- Entscheidungen nach Sektion -->
+                {entscheidungen.length > 0 && (
+                  <div>
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                      ⚖️ Entscheidungen ({entscheidungen.length})
+                    </h4>
+                    <div class="space-y-3">
+                      {Object.entries(entscheidungenBySection).map(([sec, items]) => (
+                        <div>
+                          <div class="text-xs font-medium text-slate-500 mb-1.5">
+                            {sec} – {(items as any[])[0]?.section_label ?? sec}
+                          </div>
+                          <ul class="space-y-1">
+                            {(items as any[]).map(item => (
+                              <li class="flex items-start gap-2 text-sm">
+                                <span class="text-slate-600 shrink-0 mt-0.5 text-xs w-6 text-right">#{item.item_number ?? '–'}</span>
+                                <div class="flex-1">
+                                  <span class="text-slate-300 leading-snug">{item.title}</span>
+                                  {item.be_typ && item.be_typ !== 'sonstiges' && (
+                                    <span class="ml-1 text-xs" title={item.beschlussempfehlung ?? item.be_typ}>
+                                      {beIcon(item.be_typ)}
+                                    </span>
+                                  )}
+                                  {item.be_typ === 'sonstiges' && (
+                                    <details class="mt-1">
+                                      <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">ℹ️ Beschlussempfehlung</summary>
+                                      <p class="text-xs text-slate-400 mt-1 pl-2 border-l border-blue-500/30 leading-relaxed">{item.beschlussempfehlung}</p>
+                                    </details>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <!-- Anhörungen nach Sektion -->
+                {anhoerungen.length > 0 && (
+                  <div>
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                      🎤 Anhörungen ({anhoerungen.length})
+                    </h4>
+                    <div class="space-y-3">
+                      {Object.entries(anhoerungBySection).map(([sec, items]) => (
+                        <div>
+                          <div class="text-xs font-medium text-slate-500 mb-1.5">
+                            {sec} – {(items as any[])[0]?.section_label ?? sec}
+                          </div>
+                          <ul class="space-y-1">
+                            {(items as any[]).map(item => (
+                              <li class="flex items-start gap-2 text-sm">
+                                <span class="text-slate-600 shrink-0 mt-0.5 text-xs w-6 text-right">#{item.item_number ?? '–'}</span>
+                                <div class="flex-1">
+                                  <span class="text-slate-300 leading-snug">{item.title}</span>
+                                  {item.be_typ && item.be_typ !== 'sonstiges' && (
+                                    <span class="ml-1 text-xs" title={item.beschlussempfehlung ?? item.be_typ}>
+                                      {beIcon(item.be_typ)}
+                                    </span>
+                                  )}
+                                  {item.be_typ === 'sonstiges' && (
+                                    <details class="mt-1">
+                                      <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">ℹ️ Beschlussempfehlung</summary>
+                                      <p class="text-xs text-slate-400 mt-1 pl-2 border-l border-blue-500/30 leading-relaxed">{item.beschlussempfehlung}</p>
+                                    </details>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {s.items.length === 0 && s.counts.total === 0 && (
                   <p class="text-sm text-slate-600 italic">Keine Tagesordnungsdaten verfügbar.</p>
                 )}
 
@@ -264,7 +564,7 @@ const futureSessions = sessions.filter(s => s.date >= now);
   </main>
 
   <footer class="border-t border-slate-800 mt-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 text-xs text-slate-600 flex justify-between">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 text-xs text-slate-600 flex justify-between">
       <span>Daten: <a href="https://www.muenchen-transparent.de" class="hover:text-slate-400" target="_blank">münchen-transparent.de</a></span>
       <span>BA 02 – Ludwigsvorstadt-Isarvorstadt</span>
     </div>
